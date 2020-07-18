@@ -18,12 +18,28 @@
 #include "GameView.h"
 #include "Map.h"
 #include "Places.h"
-// add your own #includes here
+//Addition #include 
 
-// TODO: ADD YOUR OWN STRUCTS HERE
+//My own declaration
+#define MAX_TRAP 3
+
+//This struct serves to keeping track of trap and vampire
+struct CityInfo {
+	int trap[MAX_TRAP];
+	bool Vamp;
+};
 
 struct gameView {
-	// TODO: ADD FIELDS HERE
+	//Fundamental game status
+	int gamescore;
+	int drac_blood;
+	int hunter_blood[4];
+	Round round;
+	//enum type defined
+	PlaceId loc_hist[NUM_PLAYERS][TRAIL_SIZE]; 
+	Player curr_player;
+	struct CityInfo cities[NUM_REAL_PLACES];
+    //Still unsure what to do with message
 };
 
 ////////////////////////////////////////////////////////////////////////
