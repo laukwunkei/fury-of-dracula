@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "Game.h"
 #include "GameView.h"
@@ -22,6 +23,7 @@
 
 //My own declaration
 #define MAX_TRAP 3
+#define NO_TRAP 0
 
 //This struct serves to keeping track of trap and vampire
 struct CityInfo {
@@ -32,8 +34,9 @@ struct CityInfo {
 struct gameView {
 	//Fundamental game status
 	int gamescore;
-	int drac_blood;
-	int hunter_blood[4];
+	int characters_blood[5];// 这里将dracula和hunters的血量数组进行合并， chracters_blood[4] 代表dracula
+							// 这样做的好处只会体现在等会儿如果用函数分工进行操作时， 可以只输入一个数组到函数中。
+							// 因为我不知道分开显示血量的意义， 如果这个是重要的操作，请改回用两个数组分别表示。
 	Round round;
 	//enum type defined
 	PlaceId loc_hist[NUM_PLAYERS][TRAIL_SIZE]; 
@@ -53,6 +56,40 @@ GameView GvNew(char *pastPlays, Message messages[])
 		fprintf(stderr, "Couldn't allocate GameView!\n");
 		exit(EXIT_FAILURE);
 	}
+	// Initialize gamescore
+	int i, j;
+    new->gamescore= GAME_START_SCORE;
+	// Initialize the blood of dracula and hunters respectively
+	for (i = 0; i < NUM_PLAYERS - 1; i++)
+        new->characters_blood[i] = GAME_START_HUNTER_LIFE_POINTS;
+
+    new->characters_blood[5]= GAME_START_BLOOD_POINTS;
+	// Initialize the location
+    for (i = 0; i < NUM_PLAYERS; i++)
+        for (j = 0; j < TRAIL_SIZE; j++)
+            new->loc_hist[i][j] = NOWHERE;
+	// Intialize the message of vampire and traps
+    for (i=0; i < NUM_REAL_PLACES; i++ ) {
+        for (j=0; j< MAX_TRAP; j++ )
+            new->cities[i].trap[j] = NO_TRAP;
+        new->cities[i].Vamp= false;
+    }
+
+	// Calculate how many rounds of games;
+	int turnsofNew = numTurns(pastPlays);
+	new->round = (int)(numTurns(pastPlays));
+	
+	// Analize the imported string
+	char* abbr = strtok(pastPlays, " ");
+	while(abbr != NULL) {
+		// TODO: updates blood and location informations turn by turn;(Eric)
+		// 这里用strok（）是想直接从pastPlays 提取出单个的string，然后根据这个string分析如何对血量和位置进行操作。
+		// 当然， 若要对血量和location进行操作， 还要调用struct里面的loc_history
+		// 我觉得这里可以用两个function分别对血量和location进行操作， 以实现分工合作， 具体function prototype我写了两个在下面
+
+		abbr = strtok(pastPlays, NULL);
+	}
+
 
 	return new;
 }
@@ -172,3 +209,22 @@ PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
 // Your own interface functions
 
 // TODO
+// input the game string(we can get it by use strtok) and location history
+// return the numbers of blood increase or decrease
+void bloodCal (char *Abb, PlaceId history [NUM_PLAYERS][TRAIL_SIZE], int characterBlood[5]);
+
+void locateUpdate(char *Abb, PlaceId history [NUM_PLAYERS][TRAIL_SIZE]);
+
+static int numTurns (char *pastPlays)
+{
+    //counts the spaces
+    int count = 1;
+    int i = 0;
+    while (pastPlays[i] != 0) {
+        if (pastPlays[i] == ' ') {
+            count++;
+        }
+        i++;
+    }
+    return ((i == 0) ? 0 : count);
+}
