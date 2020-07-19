@@ -28,12 +28,13 @@
 typedef struct pathToDest {
 	 PlaceId dest;
 	 PlaceId* path;
+	 PathToDest next;
 } *PathToDest;
 
 typedef struct hunterDest {
 	PathToDest first;
 	PathToDest tail;
-}HunterDest;
+} HunterDest;
 ///////////////////////////////////////////////////////////
 
 struct hunterView {
@@ -44,6 +45,7 @@ struct hunterView {
 ////////////////////////////////////////////////////////////////////////
 // Constructor/Destructor
 
+static void freeHunterDest (HunterDest Hd[NUM_PLAYERS - 1]); 
 
 HunterView HvNew(char *pastPlays, Message messages[])
 {
@@ -54,12 +56,13 @@ HunterView HvNew(char *pastPlays, Message messages[])
 		fprintf(stderr, "Couldn't allocate HunterView!\n");
 		exit(EXIT_FAILURE);
 	}
+	
+	new->gv = GvNew(pastPlays,messages);
+
 	for (int i = 0; i < (NUM_PLAYERS); i++) {
 		new->listofDest[i].first = NULL;
 		new->listofDest[i].tail = NULL;
 	}
-
-
 
 	return new;
 }
@@ -67,6 +70,7 @@ HunterView HvNew(char *pastPlays, Message messages[])
 void HvFree(HunterView hv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+	freeHunterDest(hv->listofDest);
 	free(hv);
 }
 
@@ -76,48 +80,47 @@ void HvFree(HunterView hv)
 Round HvGetRound(HunterView hv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return 0;
+	return GvGetRound(hv->gv);
 }
 
 // What is the current player?
 Player HvGetPlayer(HunterView hv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return PLAYER_LORD_GODALMING;
+	return GvGetPlayer(hv->gv);
 }
 
 
 int HvGetScore(HunterView hv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return 0;
+	return GvGetScore(hv->gv);
 }
 
 
 int HvGetHealth(HunterView hv, Player player)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return 0;
+	return GvGetHealth(hv->gv, player);
 }
 
 
 PlaceId HvGetPlayerLocation(HunterView hv, Player player)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return NOWHERE;
+	return GvGetPlayerLocation(hv->gv, player);
 }
 
-// 我们可以用gameview里面的 CityInfo 数组，遍历后获得这个信息
+
 PlaceId HvGetVampireLocation(HunterView hv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	return NOWHERE;
+	return GvGetVampireLocation(hv->gv);
 }
 
 ////////////////////////////////////////////////////////////////////////
 // Utility Functions
 
-// 遍历loc_his 获得这个信息
 PlaceId HvGetLastKnownDraculaLocation(HunterView hv, Round *round)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
@@ -129,6 +132,8 @@ PlaceId *HvGetShortestPathTo(HunterView hv, Player hunter, PlaceId dest,
                              int *pathLength)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+	Map map = MapNew();
+
 	*pathLength = 0;
 	return NULL;
 }
@@ -170,5 +175,15 @@ PlaceId *HvWhereCanTheyGoByType(HunterView hv, Player player,
 
 ////////////////////////////////////////////////////////////////////////
 // Your own interface functions
-
+// Free the array struct of HunterDest
+static void freeHunterDest (HunterDest Hd[NUM_PLAYERS - 1]) {
+	for (int i = 0; i < NUM_PLAYERS - 1; i++) {
+		while (Hd[i].first != NULL) {
+			PathToDest tmp = Hd[i].first;
+			Hd[i].first = Hd[i].first->next;
+			free(tmp);
+		}
+	}
+	free(Hd);
+}
 // TODO

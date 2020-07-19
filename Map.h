@@ -49,4 +49,6 @@ int MapNumConnections(Map m, TransportType type);
  */
 ConnList MapGetConnections(Map m, PlaceId p);
 
+PlaceId *MapGetShortestPathTo(PlaceId src, PlaceId dest);
+
 #endif // !defined(FOD__MAP_H_)

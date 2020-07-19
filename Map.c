@@ -194,3 +194,6 @@ ConnList MapGetConnections(Map m, PlaceId p)
 }
 
 ////////////////////////////////////////////////////////////////////////
+// My own function of map
+
+PlaceId *MapGetShortestPathTo(PlaceId src, PlaceId dest);
