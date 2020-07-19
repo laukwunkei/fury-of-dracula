@@ -24,34 +24,42 @@
 // TODO: ADD YOUR OWN STRUCTS HERE
 
 // 以下两个struct是为了将已经遍历过的path储存到hV里面防止重复遍历 //
-/////////////// 这个是Hv.h 里面老师提的需求 ///////////////////
+/////////////// 这个是Hv.h里面老师提的需求 ///////////////////
 typedef struct pathToDest {
 	 PlaceId dest;
 	 PlaceId* path;
 } *PathToDest;
 
-struct hunterDest {
+typedef struct hunterDest {
 	PathToDest first;
 	PathToDest tail;
-};
+}HunterDest;
 ///////////////////////////////////////////////////////////
 
 struct hunterView {
 	GameView gv;
-	hunterDest[NUM_PLAYERS - 1]; //exclude dracula;
+	HunterDest listofDest[NUM_PLAYERS - 1]; //exclude dracula;
 };
 
 ////////////////////////////////////////////////////////////////////////
 // Constructor/Destructor
 
+
 HunterView HvNew(char *pastPlays, Message messages[])
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+	// Initialize the struct of HvNew
 	HunterView new = malloc(sizeof(*new));
 	if (new == NULL) {
 		fprintf(stderr, "Couldn't allocate HunterView!\n");
 		exit(EXIT_FAILURE);
 	}
+	for (int i = 0; i < (NUM_PLAYERS); i++) {
+		new->listofDest[i].first = NULL;
+		new->listofDest[i].tail = NULL;
+	}
+
+
 
 	return new;
 }
@@ -72,7 +80,6 @@ Round HvGetRound(HunterView hv)
 }
 
 // What is the current player?
-// 我们可以把这个信息写在gameview里面或者在Hunterview里面计算
 Player HvGetPlayer(HunterView hv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
