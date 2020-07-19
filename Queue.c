@@ -6,10 +6,10 @@
 #include <stdlib.h>
 
 #include "Queue.h"
-#include "Item.h"
+#include "Places.h"
 
 typedef struct QueueNode {
-	Item value;
+	PlaceId value;
 	struct QueueNode *next;
 } QueueNode;
 
@@ -51,7 +51,7 @@ void showQueue (Queue Q)
 }
 
 // add item at end of Queue
-void QueueJoin (Queue Q, Item it)
+void QueueJoin (Queue Q, PlaceId it)
 {
 	assert (Q != NULL);
 
@@ -67,11 +67,11 @@ void QueueJoin (Queue Q, Item it)
 }
 
 // remove item from front of Queue
-Item QueueLeave (Queue Q)
+PlaceId QueueLeave (Queue Q)
 {
 	assert (Q != NULL);
 	assert (Q->head != NULL);
-	Item it = ItemCopy (Q->head->value);
+	PlaceId it = ItemCopy (Q->head->value);
 	QueueNode *old = Q->head;
 	Q->head = old->next;
 	if (Q->head == NULL)

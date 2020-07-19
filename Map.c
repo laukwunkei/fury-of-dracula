@@ -16,9 +16,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sysexits.h>
+#include <assert.h>
 
 #include "Map.h"
 #include "Places.h"
+#include "Queue.h"
+#define MAX_STEPS 1000
 
 struct map {
 	int nV; // number of vertices
@@ -32,6 +35,7 @@ static inline bool isSentinelEdge(Connection c);
 
 static ConnList connListInsert(ConnList l, PlaceId v, TransportType type);
 static bool connListContains(ConnList l, PlaceId v, TransportType type);
+void railFix(int numofSteps, int qL, ConnList nextvertix, Map map, int *nsteps, int *pred);
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -196,4 +200,87 @@ ConnList MapGetConnections(Map m, PlaceId p)
 ////////////////////////////////////////////////////////////////////////
 // My own function of map
 
-PlaceId *MapGetShortestPathTo(PlaceId src, PlaceId dest);
+int *MapGetShortestPathTo(PlaceId src, int roundNum, int playerNum) {
+	Map g = MapNew();
+	assert (g != NULL);
+	// Three list to track distance, steps and previous point seperately
+	const int size = g->nV;
+	//Initialize all the needed array at once//
+	int *pred = malloc(sizeof(int) * g->nV);
+	int *nsteps = malloc(sizeof(int) * g->nV);
+	int *setV = malloc(sizeof(int) * g->nV);
+	for (int i = 0; i < size; i++) {
+		pred[i] = -1;
+		nsteps[i] = MAX_STEPS;
+		setV[i] = 1;
+	}
+	///////////////////////////////////////////
+	
+	nsteps[src] = 0;
+	int rN = roundNum;
+	Queue nQueue = newQueue();
+	QueueJoin(nQueue, src);
+
+	// interate through all of the location
+	while (QueueIsEmpty(nQueue) == 0) {
+		PlaceId qL = QueueLeave(nQueue);
+		// Calculate the number of steps hunters can move
+		int numofSteps = (playerNum + rN) % 4;
+			
+			//iterate through all possilble adjacent vertexs
+			ConnList nextVertex = g->connections[qL];
+			while (nextVertex != NULL && setV[nextVertex->p] == 1) {
+				// if the connection type is rail
+				if (nextVertex->type == RAIL) {
+					railFix(numofSteps, qL, nextVertex, g, nsteps, pred);
+				}
+				
+				// if vertex has been visited, we need to do the relaxation 
+				// Note that what I mean "visited" is that the data in the
+				// concrete location has been filled by other iteration
+				if (pred[nextVertex->p] != -1) {
+					// find two path to a specific destination, needs to relax
+					if (nsteps[qL] + 1 < nsteps[nextVertex->p]) {
+						nsteps[nextVertex->p] = nsteps[qL] + 1;
+						pred[nextVertex->p] = qL;
+						nextVertex = nextVertex->next;
+						continue;
+					}
+				}
+				
+				// if vertex is adjacent to current vertex and haven't been visited
+				if (pred[nextVertex->p] == -1) {
+					// if distance is bigger than the max distance
+					QueueJoin(nQueue, nextVertex->p);
+					pred[nextVertex->p] = qL;
+					nsteps[nextVertex->p] = nsteps[qL] + 1;
+				}
+				nextVertex = nextVertex->next;
+			}
+		
+		// move current vertex out of the set
+		setV[qL] = 0;
+	}
+
+	return pred;
+	
+}
+
+static void railFix (int numofSteps, int qL, ConnList nextvertix, Map map, int *nsteps, int *pred) {
+	
+	ConnList curr = map->connections[nextvertix->p];
+	// Base case: numofSteps is equap to 1
+	if (numofSteps == 0) {
+		if (nsteps[nextvertix->p] > nsteps[qL] + 1) {
+			nsteps[nextvertix->p] = nsteps[qL] + 1;
+			pred[nextvertix->p] = qL;
+		}
+	}
+
+	// interate through all the next vertix which is rail connected
+	while (curr != NULL) {
+		if (curr->type == RAIL)
+			turnRound(numofSteps - 1 , qL, curr, map, nsteps);
+		curr = curr->next;
+	}
+}

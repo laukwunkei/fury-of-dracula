@@ -23,29 +23,17 @@
 
 // TODO: ADD YOUR OWN STRUCTS HERE
 
-// 以下两个struct是为了将已经遍历过的path储存到hV里面防止重复遍历 //
-/////////////// 这个是Hv.h里面老师提的需求 ///////////////////
-typedef struct pathToDest {
-	 PlaceId dest;
-	 PlaceId* path;
-	 PathToDest next;
-} *PathToDest;
 
-typedef struct hunterDest {
-	PathToDest first;
-	PathToDest tail;
-} HunterDest;
 ///////////////////////////////////////////////////////////
 
 struct hunterView {
 	GameView gv;
-	HunterDest listofDest[NUM_PLAYERS - 1]; //exclude dracula;
+	int *hShortestP[NUM_PLAYERS - 1]; // Hunters' shortest path
 };
 
 ////////////////////////////////////////////////////////////////////////
 // Constructor/Destructor
 
-static void freeHunterDest (HunterDest Hd[NUM_PLAYERS - 1]); 
 
 HunterView HvNew(char *pastPlays, Message messages[])
 {
@@ -56,13 +44,14 @@ HunterView HvNew(char *pastPlays, Message messages[])
 		fprintf(stderr, "Couldn't allocate HunterView!\n");
 		exit(EXIT_FAILURE);
 	}
-	
 	new->gv = GvNew(pastPlays,messages);
 
-	for (int i = 0; i < (NUM_PLAYERS); i++) {
-		new->listofDest[i].first = NULL;
-		new->listofDest[i].tail = NULL;
-	}
+	// Initialize the shortest path
+	for (int i = 0; i < NUM_PLAYERS - 1; i++) {
+		new->hShortestP[i] = MapGetShortestPathTo(GvGetPlayerLocation(new->gv, i),GvGetRound(new->gv),i);
+	} 
+	
+
 
 	return new;
 }
@@ -70,7 +59,9 @@ HunterView HvNew(char *pastPlays, Message messages[])
 void HvFree(HunterView hv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	freeHunterDest(hv->listofDest);
+	for (int i; i < NUM_PLAYERS - 1; i++) {
+		free(hv->hShortestP[i]);
+	}
 	free(hv);
 }
 
@@ -176,14 +167,5 @@ PlaceId *HvWhereCanTheyGoByType(HunterView hv, Player player,
 ////////////////////////////////////////////////////////////////////////
 // Your own interface functions
 // Free the array struct of HunterDest
-static void freeHunterDest (HunterDest Hd[NUM_PLAYERS - 1]) {
-	for (int i = 0; i < NUM_PLAYERS - 1; i++) {
-		while (Hd[i].first != NULL) {
-			PathToDest tmp = Hd[i].first;
-			Hd[i].first = Hd[i].first->next;
-			free(tmp);
-		}
-	}
-	free(Hd);
-}
+
 // TODO
