@@ -23,8 +23,22 @@
 
 // TODO: ADD YOUR OWN STRUCTS HERE
 
+// 以下两个struct是为了将已经遍历过的path储存到hV里面防止重复遍历 //
+/////////////// 这个是Hv.h 里面老师提的需求 ///////////////////
+typedef struct pathToDest {
+	 PlaceId dest;
+	 PlaceId* path;
+} *PathToDest;
+
+struct hunterDest {
+	PathToDest first;
+	PathToDest tail;
+};
+///////////////////////////////////////////////////////////
+
 struct hunterView {
-	// TODO: ADD FIELDS HERE
+	GameView gv;
+	hunterDest[NUM_PLAYERS - 1]; //exclude dracula;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -57,11 +71,14 @@ Round HvGetRound(HunterView hv)
 	return 0;
 }
 
+// What is the current player?
+// 我们可以把这个信息写在gameview里面或者在Hunterview里面计算
 Player HvGetPlayer(HunterView hv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 	return PLAYER_LORD_GODALMING;
 }
+
 
 int HvGetScore(HunterView hv)
 {
@@ -69,11 +86,13 @@ int HvGetScore(HunterView hv)
 	return 0;
 }
 
+
 int HvGetHealth(HunterView hv, Player player)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 	return 0;
 }
+
 
 PlaceId HvGetPlayerLocation(HunterView hv, Player player)
 {
@@ -81,6 +100,7 @@ PlaceId HvGetPlayerLocation(HunterView hv, Player player)
 	return NOWHERE;
 }
 
+// 我们可以用gameview里面的 CityInfo 数组，遍历后获得这个信息
 PlaceId HvGetVampireLocation(HunterView hv)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
@@ -90,13 +110,14 @@ PlaceId HvGetVampireLocation(HunterView hv)
 ////////////////////////////////////////////////////////////////////////
 // Utility Functions
 
+// 遍历loc_his 获得这个信息
 PlaceId HvGetLastKnownDraculaLocation(HunterView hv, Round *round)
 {
 	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 	*round = 0;
 	return NOWHERE;
 }
-
+// 用bfs获得这个信息
 PlaceId *HvGetShortestPathTo(HunterView hv, Player hunter, PlaceId dest,
                              int *pathLength)
 {
