@@ -35,7 +35,7 @@ static inline bool isSentinelEdge(Connection c);
 
 static ConnList connListInsert(ConnList l, PlaceId v, TransportType type);
 static bool connListContains(ConnList l, PlaceId v, TransportType type);
-static void railFix(int numofSteps, int qL, ConnList nextvertix, Map map, int *nsteps, int *pred, int *setV, Queue nQueue);
+static void railFix(int numofSteps, int qL, ConnList nextvertix, Map map, int *nsteps, int *pred, int *visited, Queue nQueue);
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -208,11 +208,11 @@ int *MapGetShortestPathTo(PlaceId src, int roundNum, int playerNum) {
 	//Initialize all the needed array at once//
 	int *pred = malloc(sizeof(int) * g->nV);
 	int *nsteps = malloc(sizeof(int) * g->nV);
-	int *setV = malloc(sizeof(int) * g->nV);
+	int *visited = malloc(sizeof(int) * g->nV);
 	for (int i = 0; i < size; i++) {
 		pred[i] = -1;
 		nsteps[i] = MAX_STEPS;
-		setV[i] = 1;
+		visited[i] = 0;
 	}
 	///////////////////////////////////////////
 	
@@ -225,18 +225,20 @@ int *MapGetShortestPathTo(PlaceId src, int roundNum, int playerNum) {
 	while (QueueIsEmpty(nQueue) == 0) {
 		PlaceId qL = QueueLeave(nQueue);
 		rN = roundNum + nsteps[qL]; // determine what is the current round
-		setV[qL] = 0;
+		visited[qL] = 1;
 		// Calculate the number of steps hunters can move using rail
 		int numofSteps = (playerNum + rN) % 4;
 			
 			//iterate through all possilble adjacent vertexs
 			ConnList nextVertex = g->connections[qL];
 			while (nextVertex != NULL ) {
+				
 				// If vertex has been vistied
-				if (setV[nextVertex->p] == 0) {
+				if (visited[nextVertex->p] == 1) {
 					nextVertex = nextVertex->next;
 					continue;
 				}
+				
 				// if the connection type is rail
 				if (nextVertex->type == RAIL) {
 					// If hunter can't use rail in this round.
@@ -244,7 +246,7 @@ int *MapGetShortestPathTo(PlaceId src, int roundNum, int playerNum) {
 						nextVertex = nextVertex->next;
 						continue;
 					}
-					railFix(numofSteps, qL, nextVertex, g, nsteps, pred, setV, nQueue);
+					railFix(numofSteps, qL, nextVertex, g, nsteps, pred, visited, nQueue);
 					nextVertex = nextVertex->next;
 					continue;
 				}
@@ -282,7 +284,7 @@ int *MapGetShortestPathTo(PlaceId src, int roundNum, int playerNum) {
 	
 }
 
-static void railFix(int numofSteps, int qL, ConnList nextvertix, Map map, int *nsteps, int *pred, int *setV, Queue nQueue){
+static void railFix(int numofSteps, int qL, ConnList nextvertix, Map map, int *nsteps, int *pred, int *visited, Queue nQueue){
 	
 	// Base case: numofSteps is equap to 1
 	if (numofSteps == 1) {
@@ -303,7 +305,7 @@ static void railFix(int numofSteps, int qL, ConnList nextvertix, Map map, int *n
 	// interate through all the next vertix which is rail connected
 	while (curr != NULL) {
 		if (curr->type == RAIL)
-			railFix(numofSteps - 1 , qL, curr, map, nsteps, pred, setV, nQueue);
+			railFix(numofSteps - 1 , qL, curr, map, nsteps, pred, visited, nQueue);
 		curr = curr->next;
 	}
 	return;

@@ -29,6 +29,8 @@
 struct hunterView {
 	GameView gv;
 	int *hShortestP[NUM_PLAYERS - 1]; // Hunters' shortest path
+	// 这个二维数组用来储存四个hunter的最短路程
+	// 所有初始化全部在huntervView初始化时进行
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -37,7 +39,6 @@ struct hunterView {
 
 HunterView HvNew(char *pastPlays, Message messages[])
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 	// Initialize the struct of HvNew
 	HunterView new = malloc(sizeof(*new));
 	if (new == NULL) {
@@ -47,6 +48,7 @@ HunterView HvNew(char *pastPlays, Message messages[])
 	new->gv = GvNew(pastPlays,messages);
 
 	// Initialize the shortest path
+	// 这里用的nShortestP（）是我写在map.c的，具体实现可移步map.c
 	for (int i = 0; i < NUM_PLAYERS - 1; i++) {
 		new->hShortestP[i] = MapGetShortestPathTo(GvGetPlayerLocation(new->gv, i),GvGetRound(new->gv),i);
 	} 
@@ -147,6 +149,7 @@ PlaceId *HvGetShortestPathTo(HunterView hv, Player hunter, PlaceId dest,
 		curr = dest;
 		// allocate memory for the array
 		PlaceId *path = malloc(sizeof(PlaceId) * count);
+		// pass the shortest path into the array, then output
 		path[count - 1] = dest;
 		for (int i = 2; i <= count; i++) {
 			path[count - i] = hv->hShortestP[hunter][curr];
