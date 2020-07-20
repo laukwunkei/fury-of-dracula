@@ -18,28 +18,31 @@
 #include "GameView.h"
 #include "Map.h"
 #include "Places.h"
-//Addition #include 
+
+//Helper functions
 int FindTurn (char *pastPlays);
 int is_substring (char *pastplay, char *sub, int index);
 int originalMove (int index, char * pastPlays);
 void updateLocMov (GameView gv, Player player, PlaceId newplace, PlaceId newmov);
 void rvereseArray(int arr[], int start, int end);
+void ReachableByRail(Map map, bool *reachable, PlaceId from, int rail_distance);
+PlaceId *reachablehelper(Map map, int *numLocations, PlaceId from, int drac, int railLength, int road, int sea);
+
 //My own declaration
 #define MAX_TRAP 3
 #define HunterNum 4
 #define MAX_MOVE 30
-//This struct serves to keeping track of traps information of each city
+
+//This struct serves to keeping track of traps information 
 struct CityInfo {
 	bool trap[MAX_TRAP]; //Each city can have max 3 traps
 };
 
 struct gameView {
-	//Fundamental game status
 	int gamescore;
 	int characters_blood[5]; //0 to 5 represented by playsequence  
 	Round round;
 	PlaceId VampLocation; //Where Immature Vamp Hide
-	//enum type defined
 	PlaceId trail_hist[NUM_PLAYERS][MAX_MOVE]; //This track of real location (show Dracular real location)
 	PlaceId move_hist[NUM_PLAYERS][MAX_MOVE]; //This track of movement history (Dracular can hide/back)
 	Player curr_player;
@@ -51,7 +54,6 @@ struct gameView {
 
 GameView GvNew(char *pastPlays, Message messages[])
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 	GameView new = malloc(sizeof(*new));
 	if (new == NULL) {
 		fprintf(stderr, "Couldn't allocate GameView!\n");
@@ -60,23 +62,27 @@ GameView GvNew(char *pastPlays, Message messages[])
 	//initialise gameView variable 
 	int curr_player = PLAYER_LORD_GODALMING;
 	new->gamescore = GAME_START_SCORE;
+
 	//initialise blood status
 	new->characters_blood[4] = GAME_START_BLOOD_POINTS;
 	for (int i = 0; i < 4; i++){
 		new->characters_blood[i] = GAME_START_HUNTER_LIFE_POINTS;
 	}
+
 	//initialise trail history 
 	for (int i = 0; i < NUM_PLAYERS; i++){
 		for (int j = 0; j < MAX_MOVE; j++){
 			new->trail_hist[i][j] = NOWHERE; 
 		}
 	}
+
 	//initialise movement history
 	for (int i = 0; i < NUM_PLAYERS; i++){
 		for (int j = 0; j < MAX_MOVE; j++){
 			new->move_hist[i][j] = NOWHERE; 
 		}
 	}
+
 	//initialise city info 
 	new->VampLocation = NOWHERE;
 	for (int i = 0; i < NUM_REAL_PLACES; i++){
@@ -85,13 +91,13 @@ GameView GvNew(char *pastPlays, Message messages[])
 		}
 	}
 
-	int total_turn = FindTurn(pastPlays);
-	int curr_turn = 0;
-	int index; 
 	//reading until end of turn 
+	int total_turn = FindTurn(pastPlays); 
+	int curr_turn = 0;
+	int index; //This serves as index for string extraction for pastplay
+				//pastPlays[index] represent current player and etc. 
 	while(curr_turn < total_turn){
 		index = curr_turn * 8; 
-		//Dracular term if mod5 is 0 
 		if(is_substring(pastPlays, "D......", index)){
 			//GameInfo update
 			curr_player = PLAYER_DRACULA;
@@ -210,6 +216,7 @@ GameView GvNew(char *pastPlays, Message messages[])
 		curr_player = (curr_player + 1) % NUM_PLAYERS;
 		curr_turn++;
 	}
+	//Update gameview
 	new->round = curr_turn / NUM_PLAYERS;
 	new->curr_player = curr_player;
 	return new;
@@ -260,7 +267,7 @@ PlaceId *GvGetTrapLocations(GameView gv, int *numTraps)
 {
 	*numTraps = 0;
 	PlaceId *Traps_array = malloc(sizeof(int) * NUM_REAL_PLACES * 3);
-	//i denote as the PlaceId
+	//i denote as the PlaceId and read into trap array if trap exists
 	for(int i = ADRIATIC_SEA; i < NUM_REAL_PLACES; i++){
 		for(int j = 0; j < MAX_TRAP; j++){
 			if(gv->cities[i].trap[j] == true){
@@ -269,7 +276,7 @@ PlaceId *GvGetTrapLocations(GameView gv, int *numTraps)
 			}
 		}
 	}
-	return Traps_array; //not sure about return type
+	return Traps_array; 
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -338,27 +345,6 @@ PlaceId *GvGetReachable(GameView gv, Player player, Round round,
                         PlaceId from, int *numReturnedLocs)
 {
 	Map game_map = MapNew();
-	bool *reachable = malloc(sizeof(int) * MAX_MOVE);
-	//Initialise and finding all reachable place
-	for (int i = 0; i < NUM_REAL_PLACES; i++){
-		reachable[i] = false;
-	}
-	reachable[from] = true;
-	ConnList current = MapGetConnections(game_map, from);
-	while (current != NULL){
-		reachable[current->p] = true;
-	}
-	//Storing all reachable places 
-	PlaceId *reachable_place = malloc(sizeof(int) * MAX_MOVE);
-	*numReturnedLocs = 0;
-	for (int i = 0; i < NUM_REAL_PLACES; i++) {
-        //don't allow dracula to go to the hospital
-        if (reachable[i]) {
-            reachable_place[*numReturnedLocs] = i;
-			(*numReturnedLocs)++;
-        }
-    }
-	/*
 	ConnList curr = MapGetConnections(game_map, from);
 	PlaceId *reachable_place = malloc(sizeof(int) * MAX_MOVE);
 	*numReturnedLocs = 0;
@@ -366,7 +352,7 @@ PlaceId *GvGetReachable(GameView gv, Player player, Round round,
 		reachable_place[*numReturnedLocs] = curr->p;
 		(*numReturnedLocs)++;
 		curr = curr->next;
-	}*/
+	}
 	return reachable_place;
 }
 
@@ -374,10 +360,17 @@ PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
                               PlaceId from, bool road, bool rail,
                               bool boat, int *numReturnedLocs)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-	*numReturnedLocs = 0;
-	return NULL;
+    Map gamemap = MapNew();
+	bool is_drac = false;
+	if (player == PLAYER_DRACULA) is_drac = true;
+    int rail_distance = (player + round) % 4; //rail distance algos
+	if (!rail || is_drac) rail_distance = 0;
+
+    PlaceId *reachable_place; //create array of reachable place
+	reachable_place = reachablehelper(gamemap, numReturnedLocs, from, is_drac, rail_distance, road, boat);
+    return reachable_place;
 }
+
 
 ////////////////////////////////////////////////////////////////////////
 // Your own interface functions
@@ -397,7 +390,7 @@ int FindTurn (char *pastPlays)
 }
 
 void updateLocMov (GameView gv, Player player, PlaceId newplace, PlaceId newmov){
-	//update trail 
+	//update trail and move history
 	for (int i = MAX_MOVE - 1; i > 0; i--){
 		gv->trail_hist[player][i] = gv->trail_hist[player][i-1];
 		gv->move_hist[player][i] = gv->move_hist[player][i-1];
@@ -406,6 +399,8 @@ void updateLocMov (GameView gv, Player player, PlaceId newplace, PlaceId newmov)
 	gv->move_hist[player][0] = newmov;
 }
 
+//This function helps us determine character and actions from pastplay
+//sub is your expected state of the game and index determines turn of the game
 int is_substring (char *pastplay, char *sub, int index)
 {
     int i = 0; //position in sub string
@@ -453,4 +448,53 @@ void rvereseArray(int arr[], int start, int end)
         start++; 
         end--; 
     }    
-}      
+}
+
+//Recursively update reachable array
+void ReachableByRail(Map map, bool *reachable, PlaceId from, int rail_distance)
+{
+    reachable[from] = 1;
+    if (rail_distance > 0) {
+        ConnList cur;
+        for (cur = MapGetConnections(map, from); cur != NULL; cur = cur->next) {
+            if (cur->type == RAIL) {
+                ReachableByRail(map, reachable, cur->p, rail_distance - 1);
+            }
+        }
+    }
+}
+
+PlaceId *reachablehelper(Map map, int *numLocations, PlaceId from, int drac, int railLength, int road, int sea)
+{
+	//Initialise all places as unreachable
+    bool *reachable = malloc(NUM_REAL_PLACES * sizeof (int));
+    for (int i = 0; i < NUM_REAL_PLACES; i++)
+        reachable[i] = false;
+
+	//Set it as reachable if transport and route are consistent
+    ConnList cur;
+    TransportType transport;
+    for (cur = MapGetConnections(map, from); cur != NULL; cur = cur->next) {
+        transport = cur->type;
+        if ((transport == ROAD && road) || (transport == BOAT && sea)) {
+            reachable[cur->p] = 1;
+        }
+    }
+
+    //include all places reachable by rail within given rail distance
+    ReachableByRail(map, reachable, from, railLength);
+
+    //Reading all reachable location into new dynamic array
+    PlaceId *reachable_location = malloc(NUM_REAL_PLACES * sizeof (PlaceId));
+	*numLocations = 0;
+    for (int i = 0; i < NUM_REAL_PLACES; i++) {
+        //Dracular can't reach hospital
+        if (reachable[i]) {
+            if (!(drac && i == ST_JOSEPH_AND_ST_MARY)) {
+                reachable_location[*numLocations] = i;
+                (*numLocations)++;
+            }
+        }
+    }
+    return reachable_location;
+}
