@@ -148,7 +148,7 @@ PlaceId *HvGetShortestPathTo(HunterView hv, Player hunter, PlaceId dest,
 		// allocate memory for the array
 		PlaceId *path = malloc(sizeof(PlaceId) * count);
 		path[count - 1] = dest;
-		for (int i = 2; i < count; i++) {
+		for (int i = 2; i <= count; i++) {
 			path[count - i] = hv->hShortestP[hunter][curr];
 			curr = hv->hShortestP[hunter][curr];
 		}

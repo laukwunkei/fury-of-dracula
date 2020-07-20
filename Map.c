@@ -217,20 +217,26 @@ int *MapGetShortestPathTo(PlaceId src, int roundNum, int playerNum) {
 	///////////////////////////////////////////
 	
 	nsteps[src] = 0;
-	int rN = roundNum;
+	int rN;
 	Queue nQueue = newQueue();
 	QueueJoin(nQueue, src);
 
 	// interate through all of the location
 	while (QueueIsEmpty(nQueue) == 0) {
 		PlaceId qL = QueueLeave(nQueue);
+		rN = roundNum + nsteps[qL]; // determine what is the current round
 		setV[qL] = 0;
 		// Calculate the number of steps hunters can move using rail
 		int numofSteps = (playerNum + rN) % 4;
 			
 			//iterate through all possilble adjacent vertexs
 			ConnList nextVertex = g->connections[qL];
-			while (nextVertex != NULL && setV[nextVertex->p] == 1) {
+			while (nextVertex != NULL ) {
+				// If vertex has been vistied
+				if (setV[nextVertex->p] == 0) {
+					nextVertex = nextVertex->next;
+					continue;
+				}
 				// if the connection type is rail
 				if (nextVertex->type == RAIL) {
 					// If hunter can't use rail in this round.
@@ -239,6 +245,8 @@ int *MapGetShortestPathTo(PlaceId src, int roundNum, int playerNum) {
 						continue;
 					}
 					railFix(numofSteps, qL, nextVertex, g, nsteps, pred, setV, nQueue);
+					nextVertex = nextVertex->next;
+					continue;
 				}
 				
 				// if vertex has been visited, we need to do the relaxation 
@@ -268,7 +276,6 @@ int *MapGetShortestPathTo(PlaceId src, int roundNum, int playerNum) {
 			}
 		
 		// move current vertex out of the set
-		rN++;
 	}
 
 	return pred;
@@ -277,7 +284,6 @@ int *MapGetShortestPathTo(PlaceId src, int roundNum, int playerNum) {
 
 static void railFix(int numofSteps, int qL, ConnList nextvertix, Map map, int *nsteps, int *pred, int *setV, Queue nQueue){
 	
-	ConnList curr = map->connections[nextvertix->p];
 	// Base case: numofSteps is equap to 1
 	if (numofSteps == 1) {
 		if (nsteps[nextvertix->p] > nsteps[qL] + 1) {
@@ -292,9 +298,11 @@ static void railFix(int numofSteps, int qL, ConnList nextvertix, Map map, int *n
 		return;
 	}
 
+	ConnList curr = map->connections[nextvertix->p];
+
 	// interate through all the next vertix which is rail connected
 	while (curr != NULL) {
-		if (curr->type == RAIL && setV[curr->p] != 0)
+		if (curr->type == RAIL)
 			railFix(numofSteps - 1 , qL, curr, map, nsteps, pred, setV, nQueue);
 		curr = curr->next;
 	}
