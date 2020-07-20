@@ -119,8 +119,11 @@ PlaceId HvGetLastKnownDraculaLocation(HunterView hv, Round *round)
 	PlaceId *moveHis = GvGetMoveHistory(hv->gv, PLAYER_DRACULA, &numofReturned, &canFree);
 	PlaceId currLoc = NOWHERE;
 	for (int i = 0; i < numofReturned; i++) {
-		if (moveHis[i] != CITY_UNKNOWN && moveHis[i] != SEA_UNKNOWN) {
+		if (moveHis[i] != CITY_UNKNOWN && 
+		moveHis[i] != SEA_UNKNOWN && 
+		moveHis[i] != CASTLE_DRACULA) {
 			currLoc = moveHis[i];
+			*round = i;
 			break;
 		}
 	}
@@ -144,8 +147,9 @@ PlaceId *HvGetShortestPathTo(HunterView hv, Player hunter, PlaceId dest,
 		curr = dest;
 		// allocate memory for the array
 		PlaceId *path = malloc(sizeof(PlaceId) * count);
-		for (int i = 0; i < count; i++) {
-			path[i] = hv->hShortestP[hunter][curr];
+		path[count - 1] = dest;
+		for (int i = 2; i < count; i++) {
+			path[count - i] = hv->hShortestP[hunter][curr];
 			curr = hv->hShortestP[hunter][curr];
 		}
 	*pathLength = count;;

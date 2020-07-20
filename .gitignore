@@ -51,9 +51,12 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-# Excutable files
-testGameView
+# Excutable file
+
 testHunterView
 testMap
 testDraculaView
+testGameView
 
+
+.vscode/launch.json

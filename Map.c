@@ -35,7 +35,7 @@ static inline bool isSentinelEdge(Connection c);
 
 static ConnList connListInsert(ConnList l, PlaceId v, TransportType type);
 static bool connListContains(ConnList l, PlaceId v, TransportType type);
-static void railFix(int numofSteps, int qL, ConnList nextvertix, Map map, int *nsteps, int *pred);
+static void railFix(int numofSteps, int qL, ConnList nextvertix, Map map, int *nsteps, int *pred, int *setV, Queue nQueue);
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -224,7 +224,8 @@ int *MapGetShortestPathTo(PlaceId src, int roundNum, int playerNum) {
 	// interate through all of the location
 	while (QueueIsEmpty(nQueue) == 0) {
 		PlaceId qL = QueueLeave(nQueue);
-		// Calculate the number of steps hunters can move
+		setV[qL] = 0;
+		// Calculate the number of steps hunters can move using rail
 		int numofSteps = (playerNum + rN) % 4;
 			
 			//iterate through all possilble adjacent vertexs
@@ -232,7 +233,12 @@ int *MapGetShortestPathTo(PlaceId src, int roundNum, int playerNum) {
 			while (nextVertex != NULL && setV[nextVertex->p] == 1) {
 				// if the connection type is rail
 				if (nextVertex->type == RAIL) {
-					railFix(numofSteps, qL, nextVertex, g, nsteps, pred);
+					// If hunter can't use rail in this round.
+					if (numofSteps == 0) {
+						nextVertex = nextVertex->next;
+						continue;
+					}
+					railFix(numofSteps, qL, nextVertex, g, nsteps, pred, setV, nQueue);
 				}
 				
 				// if vertex has been visited, we need to do the relaxation 
@@ -252,35 +258,45 @@ int *MapGetShortestPathTo(PlaceId src, int roundNum, int playerNum) {
 				if (pred[nextVertex->p] == -1) {
 					// if distance is bigger than the max distance
 					QueueJoin(nQueue, nextVertex->p);
-					pred[nextVertex->p] = qL;
-					nsteps[nextVertex->p] = nsteps[qL] + 1;
+					// If vertex haven't been railfix	
+					if (pred[nextVertex->p] == -1) {	
+						pred[nextVertex->p] = qL;
+						nsteps[nextVertex->p] = nsteps[qL] + 1;
+					}
 				}
 				nextVertex = nextVertex->next;
 			}
 		
 		// move current vertex out of the set
-		setV[qL] = 0;
+		rN++;
 	}
 
 	return pred;
 	
 }
 
-static void railFix (int numofSteps, int qL, ConnList nextvertix, Map map, int *nsteps, int *pred) {
+static void railFix(int numofSteps, int qL, ConnList nextvertix, Map map, int *nsteps, int *pred, int *setV, Queue nQueue){
 	
 	ConnList curr = map->connections[nextvertix->p];
 	// Base case: numofSteps is equap to 1
-	if (numofSteps == 0) {
+	if (numofSteps == 1) {
 		if (nsteps[nextvertix->p] > nsteps[qL] + 1) {
+			// If we this location we never achieved
+			if (pred[nextvertix->p] == -1) {
+				QueueJoin(nQueue, nextvertix->p);
+			}
 			nsteps[nextvertix->p] = nsteps[qL] + 1;
 			pred[nextvertix->p] = qL;
 		}
+
+		return;
 	}
 
 	// interate through all the next vertix which is rail connected
 	while (curr != NULL) {
-		if (curr->type == RAIL)
-			railFix(numofSteps - 1 , qL, curr, map, nsteps, pred);
+		if (curr->type == RAIL && setV[curr->p] != 0)
+			railFix(numofSteps - 1 , qL, curr, map, nsteps, pred, setV, nQueue);
 		curr = curr->next;
 	}
+	return;
 }
