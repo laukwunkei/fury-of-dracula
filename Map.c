@@ -35,7 +35,7 @@ static inline bool isSentinelEdge(Connection c);
 
 static ConnList connListInsert(ConnList l, PlaceId v, TransportType type);
 static bool connListContains(ConnList l, PlaceId v, TransportType type);
-void railFix(int numofSteps, int qL, ConnList nextvertix, Map map, int *nsteps, int *pred);
+static void railFix(int numofSteps, int qL, ConnList nextvertix, Map map, int *nsteps, int *pred);
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -280,7 +280,7 @@ static void railFix (int numofSteps, int qL, ConnList nextvertix, Map map, int *
 	// interate through all the next vertix which is rail connected
 	while (curr != NULL) {
 		if (curr->type == RAIL)
-			turnRound(numofSteps - 1 , qL, curr, map, nsteps);
+			railFix(numofSteps - 1 , qL, curr, map, nsteps, pred);
 		curr = curr->next;
 	}
 }

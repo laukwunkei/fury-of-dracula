@@ -50,3 +50,10 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# Excutable files
+testGameView
+testHunterView
+testMap
+testDraculaView
+
