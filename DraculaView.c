@@ -24,8 +24,9 @@ void updateMove(char *pastplays, PlaceId *trail);
 bool in_trail(PlaceId *trail, PlaceId place);
 bool Has_hide(PlaceId *trail);
 bool Has_DB(PlaceId *trail);
-// TODO: ADD YOUR OWN STRUCTS HERE
+PlaceId *location_movement(DraculaView dv, int *numReturnedLocs, bool road, bool rail, bool boat);
 
+//My own struct
 struct draculaView {
 	GameView game;
 	PlaceId drac_trail[TRAIL_SIZE]; //real location
@@ -42,6 +43,7 @@ DraculaView DvNew(char *pastPlays, Message messages[])
 		fprintf(stderr, "Couldn't allocate DraculaView\n");
 		exit(EXIT_FAILURE);
 	}
+	//Update dracview 
 	new->game = GvNew(pastPlays, messages);
 	updateTrail(pastPlays, new->drac_trail);
 	updateMove(pastPlays, new->drac_move);
@@ -84,6 +86,7 @@ PlaceId DvGetVampireLocation(DraculaView dv)
 PlaceId *DvGetTrapLocations(DraculaView dv, int *numTraps)
 {
 	*numTraps = 0;
+	//Trap array store arrays of traps
 	PlaceId *Traps_array = malloc(sizeof(int) * NUM_REAL_PLACES * 3);
 	Traps_array = GvGetTrapLocations(dv->game, numTraps);
 	return Traps_array;
@@ -95,29 +98,12 @@ PlaceId *DvGetTrapLocations(DraculaView dv, int *numTraps)
 PlaceId *DvGetValidMoves(DraculaView dv, int *numReturnedMoves)
 {
 	*numReturnedMoves = 0;
-	PlaceId *all_place = malloc(sizeof(int) * NUM_REAL_PLACES);
-	all_place = GvGetReachableByType(dv->game, PLAYER_DRACULA, GvGetRound(dv->game), dv->drac_trail[0], true, false, true, numReturnedMoves);
-	//Create a new array to mark whether it's a valid place
-	PlaceId *correct_place = malloc(sizeof(int) * NUM_REAL_PLACES);
-	int valid_place = 0;
-	for (int i = 0; i < *numReturnedMoves; i++){
-		if (all_place[i] != ST_JOSEPH_AND_ST_MARY && !in_trail(dv->drac_trail, all_place[i])){
-			correct_place[i] = 1;
-			valid_place++;
-		}
-	}
-	//read only correct_place[i] into output array
+	//Output gives me all valid location to proceed
 	PlaceId *output = malloc(sizeof(int) * NUM_REAL_PLACES);
-	int index = 0;
-	for (int i = 0; i < *numReturnedMoves; i++){
-		if (correct_place[i]){
-			output[index++] = all_place[i];
-		}
-	}
-	*numReturnedMoves = valid_place;
-	//add special movement
+	output = location_movement(dv, numReturnedMoves, true, false, true);
+	//add special movement in addition to valid location (Hide and Double back)
 	int trail_length = 0;
-	bool hide_status = Has_hide(dv->drac_trail); 
+	bool hide_status = Has_hide(dv->drac_move); 
 	bool DB_status = Has_DB(dv->drac_move); 
 	for (trail_length = 0; trail_length < TRAIL_SIZE; trail_length++){
 		if(dv->drac_trail[trail_length] == NOWHERE) break;
@@ -137,26 +123,9 @@ PlaceId *DvWhereCanIGo(DraculaView dv, int *numReturnedLocs)
 {
 	*numReturnedLocs = 0;
 	PlaceId *all_place = malloc(sizeof(int) * NUM_REAL_PLACES);
-	all_place = GvGetReachableByType(dv->game, PLAYER_DRACULA, GvGetRound(dv->game), dv->drac_trail[0], true, false, true, numReturnedLocs);
-	//Create a new array to mark whether it's a valid place
-	PlaceId *correct_place = malloc(sizeof(int) * NUM_REAL_PLACES);
-	int valid_place = 0;
-	for (int i = 0; i < *numReturnedLocs; i++){
-		if (all_place[i] != ST_JOSEPH_AND_ST_MARY && !in_trail(dv->drac_trail, all_place[i])){
-			correct_place[i] = 1;
-			valid_place++;
-		}
-	}
-	//read only correct_place[i] into output array
-	PlaceId *output = malloc(sizeof(int) * NUM_REAL_PLACES);
-	int index = 0;
-	for (int i = 0; i < *numReturnedLocs; i++){
-		if (correct_place[i]){
-			output[index++] = all_place[i];
-		}
-	}
-	*numReturnedLocs = valid_place;
-	return output;
+	//All place contains places Drac can go by all type
+	all_place = location_movement(dv, numReturnedLocs, true, false, true);
+	return all_place;
 }
 
 PlaceId *DvWhereCanIGoByType(DraculaView dv, bool road, bool boat,
@@ -164,45 +133,25 @@ PlaceId *DvWhereCanIGoByType(DraculaView dv, bool road, bool boat,
 {
 	*numReturnedLocs = 0;
 	PlaceId *all_place = malloc(sizeof(int) * NUM_REAL_PLACES);
-	all_place = GvGetReachableByType(dv->game, PLAYER_DRACULA, GvGetRound(dv->game), dv->drac_trail[0], road, false, boat, numReturnedLocs);
-	//Create a new array to mark whether it's a valid place
-	PlaceId *correct_place = malloc(sizeof(int) * NUM_REAL_PLACES);
-	int valid_place = 0;
-	for (int i = 0; i < *numReturnedLocs; i++){
-		if (all_place[i] != ST_JOSEPH_AND_ST_MARY && !in_trail(dv->drac_trail, all_place[i])){
-			correct_place[i] = 1;
-			valid_place++;
-		}
-	}
-	//read only correct_place[i] into output array
-	PlaceId *output = malloc(sizeof(int) * NUM_REAL_PLACES);
-	int index = 0;
-	for (int i = 0; i < *numReturnedLocs; i++){
-		if (correct_place[i]){
-			output[index++] = all_place[i];
-		}
-	}
-	*numReturnedLocs = valid_place;
-	return output;
+	//All place contains places Drac can go by constraint type
+	all_place = location_movement(dv, numReturnedLocs, road, false, boat);
+	return all_place;
 }
 
 PlaceId *DvWhereCanTheyGo(DraculaView dv, Player player,
                           int *numReturnedLocs)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 	*numReturnedLocs = 0;
-	return NULL;
+	return GvGetReachable(dv->game, player, GvGetRound(dv->game),GvGetPlayerLocation(dv->game, player), numReturnedLocs);
 }
 
 PlaceId *DvWhereCanTheyGoByType(DraculaView dv, Player player,
                                 bool road, bool rail, bool boat,
                                 int *numReturnedLocs)
 {
-	// TODO: REPLACE THIS WITH YOUR OWN IMPLEMENTATION
 	*numReturnedLocs = 0;
-	return NULL;
+	return GvGetReachableByType(dv->game, player, GvGetRound(dv->game), GvGetPlayerLocation(dv->game, player), road, rail, boat, numReturnedLocs);
 }
-
 
 /*Helper function*/
 
@@ -269,6 +218,7 @@ bool in_trail(PlaceId *trail, PlaceId place){
     return false;
 }
 
+//Determine whether hide occurs in drac_move
 bool Has_hide(PlaceId *trail){
 	for(int i = 0; i < TRAIL_SIZE; i++){
 		if(trail[i] == HIDE) return true;
@@ -276,6 +226,7 @@ bool Has_hide(PlaceId *trail){
 	return false;
 }
 
+//Determine whether DoubleBack occurs in drac_move
 bool Has_DB(PlaceId *trail){
 	for(int i = 0; i < TRAIL_SIZE; i++){
 		if(trail[i] >= DOUBLE_BACK_1 && DOUBLE_BACK_5 <= trail[i]) return true;
@@ -283,3 +234,28 @@ bool Has_DB(PlaceId *trail){
 	return false;
 }
 
+//Return array of valid location that Drac can go
+PlaceId *location_movement(DraculaView dv, int *numReturnedLocs, bool road, bool rail, bool boat){
+	*numReturnedLocs = 0;
+	PlaceId *all_place = malloc(sizeof(int) * NUM_REAL_PLACES);
+	all_place = GvGetReachableByType(dv->game, PLAYER_DRACULA, GvGetRound(dv->game), dv->drac_trail[0], true, false, true, numReturnedLocs);
+	//Create a new array to mark whether it's a valid place
+	PlaceId *correct_place = malloc(sizeof(int) * NUM_REAL_PLACES);
+	int valid_place = 0;
+	for (int i = 0; i < *numReturnedLocs; i++){
+		if (all_place[i] != ST_JOSEPH_AND_ST_MARY && !in_trail(dv->drac_trail, all_place[i])){
+			correct_place[i] = 1;
+			valid_place++;
+		}
+	}
+	//read only correct_place[i] into output array
+	PlaceId *output = malloc(sizeof(int) * NUM_REAL_PLACES);
+	int index = 0;
+	for (int i = 0; i < *numReturnedLocs; i++){
+		if (correct_place[i]){
+			output[index++] = all_place[i];
+		}
+	}
+	*numReturnedLocs = valid_place;
+	return output;
+}
