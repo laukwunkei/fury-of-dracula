@@ -23,7 +23,7 @@
 struct map {
 	int nV; // number of vertices
 	int nE; // number of edges
-	ConnList connections[NUM_REAL_PLACES];
+	ConnList connections[NUM_REAL_PLACES]; //connection represented in a list
 };
 
 static void addConnections(Map m);
@@ -190,7 +190,7 @@ static bool connListContains(ConnList l, PlaceId p, TransportType type)
 ConnList MapGetConnections(Map m, PlaceId p)
 {
 	assert(placeIsReal(p));
-	return m->connections[p];
+	return m->connections[p]; 
 }
 
 ////////////////////////////////////////////////////////////////////////

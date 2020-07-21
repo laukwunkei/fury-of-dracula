@@ -112,7 +112,7 @@ int main(void)
 		printf("Test passed!\n");
 		DvFree(dv);
 	}
-
+	
 	{///////////////////////////////////////////////////////////////////
 	
 		printf("Test for Dracula's valid moves 1\n");
