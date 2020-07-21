@@ -22,7 +22,6 @@
 #include "GameView.h"
 #include "Places.h"
 #include "testUtils.h"
-#include "Queue.h"
 
 int main(void)
 {
@@ -361,7 +360,7 @@ int main(void)
 		assert(GvGetHealth(gv, PLAYER_DR_SEWARD) ==
 				GAME_START_HUNTER_LIFE_POINTS - 2 * LIFE_LOSS_TRAP_ENCOUNTER);
 		assert(GvGetPlayerLocation(gv, PLAYER_DRACULA) == CITY_UNKNOWN);
-		assert(GvGetVampireLocation(gv) == STRASBOURG);
+		assert(GvGetVampireLocation(gv) == NOWHERE);
 		
 		// Lord Godalming's move/location history
 		{
@@ -470,7 +469,7 @@ int main(void)
 			assert(numLocs == 7);
 			sortPlaces(locs, numLocs);
 			assert(locs[0] == BORDEAUX);
-			assert(locs[1] == BUCHAREST);
+			assert(locs[1] == BRUSSELS);
 			assert(locs[2] == COLOGNE);
 			assert(locs[3] == LE_HAVRE);
 			assert(locs[4] == MARSEILLES);
