@@ -254,7 +254,7 @@ int *MapGetShortestPathTo(PlaceId src, int roundNum, int playerNum) {
 				// if vertex has been visited, we need to do the relaxation 
 				// Note that what I mean "visited" is that the data in the
 				// concrete location has been filled by other iteration
-				if (pred[nextVertex->p] != 1) {
+				if (pred[nextVertex->p] != -1) {
 					// find two path to a specific destination, needs to relax
 					if (nsteps[qL] + 1 < nsteps[nextVertex->p]) {
 						nsteps[nextVertex->p] = nsteps[qL] + 1;
