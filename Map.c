@@ -201,15 +201,15 @@ ConnList MapGetConnections(Map m, PlaceId p)
 // My own function of map
 
 int *MapGetShortestPathTo(PlaceId src, int roundNum, int playerNum) {
+
 	Map g = MapNew();
 	assert (g != NULL);
-	// Three list to track distance, steps and previous point seperately
-	const int size = g->nV;
+	
 	//Initialize all the needed array at once//
-	int *pred = malloc(sizeof(int) * g->nV);
-	int *nsteps = malloc(sizeof(int) * g->nV);
-	int *visited = malloc(sizeof(int) * g->nV);
-	for (int i = 0; i < size; i++) {
+	int *pred = malloc(sizeof(int) * NUM_REAL_PLACES);// We will return this array later
+	int nsteps[NUM_REAL_PLACES];
+	int visited[NUM_REAL_PLACES];
+	for (int i = 0; i < NUM_REAL_PLACES; i++) {
 		pred[i] = -1;
 		nsteps[i] = MAX_STEPS;
 		visited[i] = 0;
@@ -217,7 +217,7 @@ int *MapGetShortestPathTo(PlaceId src, int roundNum, int playerNum) {
 	///////////////////////////////////////////
 	
 	nsteps[src] = 0;
-	int rN;
+	int rN; // get round number for each 
 	Queue nQueue = newQueue();
 	QueueJoin(nQueue, src);
 
@@ -254,7 +254,7 @@ int *MapGetShortestPathTo(PlaceId src, int roundNum, int playerNum) {
 				// if vertex has been visited, we need to do the relaxation 
 				// Note that what I mean "visited" is that the data in the
 				// concrete location has been filled by other iteration
-				if (pred[nextVertex->p] != -1) {
+				if (pred[nextVertex->p] != 1) {
 					// find two path to a specific destination, needs to relax
 					if (nsteps[qL] + 1 < nsteps[nextVertex->p]) {
 						nsteps[nextVertex->p] = nsteps[qL] + 1;
@@ -263,27 +263,24 @@ int *MapGetShortestPathTo(PlaceId src, int roundNum, int playerNum) {
 						continue;
 					}
 				}
-				
 				// if vertex is adjacent to current vertex and haven't been visited
 				if (pred[nextVertex->p] == -1) {
-					// if distance is bigger than the max distance
 					QueueJoin(nQueue, nextVertex->p);
 					// If vertex haven't been railfix	
-					if (pred[nextVertex->p] == -1) {	
 						pred[nextVertex->p] = qL;
 						nsteps[nextVertex->p] = nsteps[qL] + 1;
-					}
 				}
 				nextVertex = nextVertex->next;
 			}
 		
 		// move current vertex out of the set
 	}
-
-	return pred;
 	
+	return pred;
 }
 
+// This function implement the feature enabling hunters to hop cities through rail in one round
+// Using recursion
 static void railFix(int numofSteps, int qL, ConnList nextvertix, Map map, int *nsteps, int *pred, int *visited, Queue nQueue){
 	
 	// Base case: numofSteps is equap to 1
@@ -300,10 +297,15 @@ static void railFix(int numofSteps, int qL, ConnList nextvertix, Map map, int *n
 		return;
 	}
 
-	ConnList curr = map->connections[nextvertix->p];
-
 	// interate through all the next vertix which is rail connected
+	ConnList curr = map->connections[nextvertix->p];//point to the first adjacent node
 	while (curr != NULL) {
+		// If vertex has been visited
+		if (visited[curr->p] == 1) {
+			curr = curr->next;
+			continue;
+		}
+		// Check if the vertex is a rail type
 		if (curr->type == RAIL)
 			railFix(numofSteps - 1 , qL, curr, map, nsteps, pred, visited, nQueue);
 		curr = curr->next;
