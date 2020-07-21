@@ -22,6 +22,7 @@
 #include "GameView.h"
 #include "Places.h"
 #include "testUtils.h"
+#include "Queue.h"
 
 int main(void)
 {
@@ -363,7 +364,8 @@ int main(void)
 		assert(GvGetHealth(gv, PLAYER_DR_SEWARD) ==
 				GAME_START_HUNTER_LIFE_POINTS - 2 * LIFE_LOSS_TRAP_ENCOUNTER);
 		assert(GvGetPlayerLocation(gv, PLAYER_DRACULA) == CITY_UNKNOWN);
-		assert(GvGetVampireLocation(gv) == STRASBOURG);
+		printf("current vamp %d\n", GvGetVampireLocation(gv));
+		assert(GvGetVampireLocation(gv) == NOWHERE);
 		
 		// Lord Godalming's move/location history
 		{

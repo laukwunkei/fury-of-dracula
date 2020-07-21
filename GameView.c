@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "Game.h"
 #include "GameView.h"
@@ -186,7 +187,8 @@ GameView GvNew(char *pastPlays, Message messages[])
 
 			//Encountering immature vampire
 			if (is_substring(pastPlays, "...V...", index)||
-			is_substring(pastPlays, "....V..", index)) {
+			is_substring(pastPlays, "....V..", index)||
+			is_substring(pastPlays, ".....V.", index)) {
                 new->VampLocation = NOWHERE;
             }
 			//Encountering dracular
