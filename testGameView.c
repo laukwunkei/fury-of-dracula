@@ -22,7 +22,6 @@
 #include "GameView.h"
 #include "Places.h"
 #include "testUtils.h"
-#include "Queue.h"
 
 int main(void)
 {
@@ -185,7 +184,7 @@ int main(void)
 			"GST.... SST.... HST.... MST.... DD1.... "
 			"GFR.... SFR.... HFR.... MFR....";
 		
-		Message messages[] = {
+		Message messages[14] = {
 			"Hello", "Rubbish", "Stuff", "", "Mwahahah",
 			"Aha!", "", "", "", "Back I go"};
 		
@@ -213,7 +212,7 @@ int main(void)
 		Message messages[6] = {};
 		GameView gv = GvNew(trail, messages);
 	
-		assert(GvGetHealth(gv, GAME_START_HUNTER_LIFE_POINTS));
+		assert(GvGetHealth(gv, PLAYER_LORD_GODALMING) == GAME_START_HUNTER_LIFE_POINTS);
 		
 		GvFree(gv);
 		printf("Test passed!\n");
@@ -274,7 +273,7 @@ int main(void)
 			"GSZ.... SGE.... HGE.... MGE.... DGAT... "
 			"GSZ.... SGE.... HGE.... MGE....";
 		
-		Message messages[15] = {};
+		Message messages[19] = {};
 		GameView gv = GvNew(trail, messages);
 		
 		assert(GvGetPlayerLocation(gv, PLAYER_DRACULA) == GALATZ);
@@ -364,7 +363,10 @@ int main(void)
 		assert(GvGetHealth(gv, PLAYER_DR_SEWARD) ==
 				GAME_START_HUNTER_LIFE_POINTS - 2 * LIFE_LOSS_TRAP_ENCOUNTER);
 		assert(GvGetPlayerLocation(gv, PLAYER_DRACULA) == CITY_UNKNOWN);
+<<<<<<< HEAD
 		printf("current vamp %d\n", GvGetVampireLocation(gv));
+=======
+>>>>>>> 8765ef3042e05d0793659ef7247c6b80369772b4
 		assert(GvGetVampireLocation(gv) == NOWHERE);
 		
 		// Lord Godalming's move/location history

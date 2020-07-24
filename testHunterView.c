@@ -40,8 +40,8 @@ int main(void)
 		assert(HvGetHealth(hv, PLAYER_DRACULA) == GAME_START_BLOOD_POINTS);
 		assert(HvGetVampireLocation(hv) == NOWHERE);
 
-		printf("Test passed\n");
 		HvFree(hv);
+		printf("Test passed\n");
 	}
 
 	{///////////////////////////////////////////////////////////////////
@@ -60,8 +60,8 @@ int main(void)
 		assert(HvGetPlayerLocation(hv, PLAYER_LORD_GODALMING) == STRASBOURG);
 		assert(HvGetPlayerLocation(hv, PLAYER_DR_SEWARD) == NOWHERE);
 
-		printf("Test passed!\n");
 		HvFree(hv);
+		printf("Test passed!\n");
 	}
 	
 	{///////////////////////////////////////////////////////////////////
@@ -82,8 +82,14 @@ int main(void)
 		assert(HvGetPlayerLocation(hv, PLAYER_VAN_HELSING) == ZURICH);
 		assert(HvGetPlayerLocation(hv, PLAYER_MINA_HARKER) == NOWHERE);
 		assert(HvGetPlayerLocation(hv, PLAYER_DRACULA) == NOWHERE);
+<<<<<<< HEAD
 		HvFree(hv);
  		printf("Test passed!\n");
+=======
+		
+		HvFree(hv);
+		printf("Test passed!\n");
+>>>>>>> 8765ef3042e05d0793659ef7247c6b80369772b4
 	}
 	
 	{///////////////////////////////////////////////////////////////////
@@ -281,8 +287,14 @@ int main(void)
 		Round round = -1;
 		assert(HvGetLastKnownDraculaLocation(hv, &round) == KLAUSENBURG);
 		assert(round == 1);
+<<<<<<< HEAD
 		HvFree(hv);
  		printf("Test passed!\n");
+=======
+		
+		HvFree(hv);
+		printf("Test passed!\n");
+>>>>>>> 8765ef3042e05d0793659ef7247c6b80369772b4
 	}
 
 	{///////////////////////////////////////////////////////////////////
@@ -336,7 +348,7 @@ int main(void)
 			PlaceId *path = HvGetShortestPathTo(hv, PLAYER_MINA_HARKER,
 			                                    CONSTANTA, &pathLength);
 			assert(pathLength == 4);
-//			assert(path[0] == GENOA); My implementation choose another path
+			assert(path[0] == GENOA);
 			assert(path[1] == VENICE);
 			assert(path[2] == BUDAPEST);
 			assert(path[3] == CONSTANTA);
@@ -351,7 +363,7 @@ int main(void)
 			assert(pathLength == 7);
 			assert(path[0] == SARAGOSSA);
 			assert(path[1] == MARSEILLES);
-//			assert(path[2] == GENOA); My implementation take milan
+			assert(path[2] == GENOA);
 			assert(path[3] == VENICE);
 			assert(path[4] == BUDAPEST);
 			assert(path[5] == GALATZ);

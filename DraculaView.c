@@ -209,6 +209,7 @@ void updateTrail(char *pastplays, PlaceId *trail){
 		}
 	}
 }
+<<<<<<< HEAD
 
 //This function determine whether a given place in on drac trail
 bool in_trail(PlaceId *trail, PlaceId place){
@@ -226,6 +227,25 @@ bool Has_hide(PlaceId *trail){
 	return false;
 }
 
+=======
+
+//This function determine whether a given place in on drac trail
+bool in_trail(PlaceId *trail, PlaceId place){
+    int i;
+    for (i = 0; i < TRAIL_SIZE; i++)
+        if (trail[i] == place) return true;
+    return false;
+}
+
+//Determine whether hide occurs in drac_move
+bool Has_hide(PlaceId *trail){
+	for(int i = 0; i < TRAIL_SIZE; i++){
+		if(trail[i] == HIDE) return true;
+	}
+	return false;
+}
+
+>>>>>>> 8765ef3042e05d0793659ef7247c6b80369772b4
 //Determine whether DoubleBack occurs in drac_move
 bool Has_DB(PlaceId *trail){
 	for(int i = 0; i < TRAIL_SIZE; i++){
@@ -258,4 +278,8 @@ PlaceId *location_movement(DraculaView dv, int *numReturnedLocs, bool road, bool
 	}
 	*numReturnedLocs = valid_place;
 	return output;
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 8765ef3042e05d0793659ef7247c6b80369772b4
