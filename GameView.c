@@ -27,7 +27,7 @@ int originalMove (int index, char * pastPlays);
 void updateLocMov (GameView gv, Player player, PlaceId newplace, PlaceId newmov);
 void rvereseArray(int arr[], int start, int end);
 void ReachableByRail(Map map, bool *reachable, PlaceId from, int rail_distance);
-PlaceId *reachablehelper(Map map, int *numLocations, PlaceId from, int drac, int railLength, int road, int sea);
+PlaceId *reachablehelper(Map map, int *numLocations, PlaceId from, int drac, int railLength, int road, int sea, int rail);
 
 //My own declaration
 #define MAX_TRAP 3
@@ -369,7 +369,7 @@ PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
 	if (!rail || is_drac) rail_distance = 0;
 
     PlaceId *reachable_place; //create array of reachable place
-	reachable_place = reachablehelper(gamemap, numReturnedLocs, from, is_drac, rail_distance, road, boat);
+	reachable_place = reachablehelper(gamemap, numReturnedLocs, from, is_drac, rail_distance, road, boat, rail);
     return reachable_place;
 }
 
@@ -466,7 +466,7 @@ void ReachableByRail(Map map, bool *reachable, PlaceId from, int rail_distance)
     }
 }
 
-PlaceId *reachablehelper(Map map, int *numLocations, PlaceId from, int drac, int railLength, int road, int sea)
+PlaceId *reachablehelper(Map map, int *numLocations, PlaceId from, int drac, int railLength, int road, int sea, int rail)
 {
 	//Initialise all places as unreachable
     bool *reachable = malloc(NUM_REAL_PLACES * sizeof (int));
@@ -476,6 +476,7 @@ PlaceId *reachablehelper(Map map, int *numLocations, PlaceId from, int drac, int
 	//Set it as reachable if transport and route are consistent
     ConnList cur;
     TransportType transport;
+	reachable[from] = 1;
     for (cur = MapGetConnections(map, from); cur != NULL; cur = cur->next) {
         transport = cur->type;
         if ((transport == ROAD && road) || (transport == BOAT && sea)) {
@@ -484,7 +485,10 @@ PlaceId *reachablehelper(Map map, int *numLocations, PlaceId from, int drac, int
     }
 
     //include all places reachable by rail within given rail distance
-    ReachableByRail(map, reachable, from, railLength);
+	int new = railLength;
+	if (drac != true && rail)
+		if (new == 0) new = 1;
+    	ReachableByRail(map, reachable, from, new);
 
     //Reading all reachable location into new dynamic array
     PlaceId *reachable_location = malloc(NUM_REAL_PLACES * sizeof (PlaceId));
