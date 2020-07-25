@@ -82,14 +82,8 @@ int main(void)
 		assert(HvGetPlayerLocation(hv, PLAYER_VAN_HELSING) == ZURICH);
 		assert(HvGetPlayerLocation(hv, PLAYER_MINA_HARKER) == NOWHERE);
 		assert(HvGetPlayerLocation(hv, PLAYER_DRACULA) == NOWHERE);
-<<<<<<< HEAD
 		HvFree(hv);
  		printf("Test passed!\n");
-=======
-		
-		HvFree(hv);
-		printf("Test passed!\n");
->>>>>>> 8765ef3042e05d0793659ef7247c6b80369772b4
 	}
 	
 	{///////////////////////////////////////////////////////////////////
@@ -287,14 +281,8 @@ int main(void)
 		Round round = -1;
 		assert(HvGetLastKnownDraculaLocation(hv, &round) == KLAUSENBURG);
 		assert(round == 1);
-<<<<<<< HEAD
 		HvFree(hv);
  		printf("Test passed!\n");
-=======
-		
-		HvFree(hv);
-		printf("Test passed!\n");
->>>>>>> 8765ef3042e05d0793659ef7247c6b80369772b4
 	}
 
 	{///////////////////////////////////////////////////////////////////
