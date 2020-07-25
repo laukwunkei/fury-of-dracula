@@ -31,6 +31,10 @@ void decideHunterMove(HunterView hv)
 	locat = HvGetLastKnownDraculaLocation(hv, &roundNum);
 	draculaTrail = HvReturnTrail(hv);
 
+	// If hunter's blood is less than a perticular value, hunter rests.
+	// TODO:
+
+
 	// If there are no informations available, hunter do researches
 	// 这里如果我们发现现有的信息没办法反映出Dracula的具体位置，我们就可以让猎人研究以获得dracula
 	// 的位置
