@@ -363,10 +363,6 @@ int main(void)
 		assert(GvGetHealth(gv, PLAYER_DR_SEWARD) ==
 				GAME_START_HUNTER_LIFE_POINTS - 2 * LIFE_LOSS_TRAP_ENCOUNTER);
 		assert(GvGetPlayerLocation(gv, PLAYER_DRACULA) == CITY_UNKNOWN);
-<<<<<<< HEAD
-		printf("current vamp %d\n", GvGetVampireLocation(gv));
-=======
->>>>>>> 8765ef3042e05d0793659ef7247c6b80369772b4
 		assert(GvGetVampireLocation(gv) == NOWHERE);
 		
 		// Lord Godalming's move/location history
