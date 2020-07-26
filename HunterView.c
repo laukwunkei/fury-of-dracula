@@ -193,5 +193,17 @@ PlaceId *HvWhereCanTheyGoByType(HunterView hv, Player player,
 
 ////////////////////////////////////////////////////////////////////////
 // Your own interface functions
-
+int *HvReturnTrail(HunterView hv) {
+	int returnRound= -1;
+	bool canFree = false;
+	int *moveHis = GvGetLocationHistory(hv->gv, PLAYER_DRACULA, &returnRound, &canFree);
+	int trail[TRAIL_SIZE] = {NOWHERE};
+	for (int i = 0; i < TRAIL_SIZE; i++) {
+		if (i < returnRound)
+			trail[i] = moveHis[i];
+		else
+			break;
+	}
+	return moveHis;
+}
 // TODO

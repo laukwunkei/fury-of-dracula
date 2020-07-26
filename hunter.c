@@ -22,17 +22,26 @@ void decideHunterMove(HunterView hv)
 {
 	PlaceId locat = NOWHERE;
 	int roundNum = 400;
-	int *draculaTrail;
 	
-	// Check if there are informations available
-	// 这里我们需要看看现有的信息是否能反映出dracula大致的位置，这里的信息包括dracula的trail和
-	// dracula最近移动的位置。
-	// TODO：
-	locat = HvGetLastKnownDraculaLocation(hv, &roundNum);
-	draculaTrail = HvReturnTrail(hv);
-
+	
 	// If hunter's blood is less than a perticular value, hunter rests.
-	// TODO:
+	if (HvGetHealth(hv,HvGetPlayer(hv)) <= 4) {
+		registerBestPlay(HvGetPlayerLocation(hv,HvGetPlayer(hv)), "Hunter rest");
+		return;
+	} 
+	// Check if there are useful informations available
+	// useful informations refer to moves of dracula withing 6 rounds
+	// even we can get the last move of dracula, we still need to analyse if there are 
+	// any 
+	locat= validLastLocation(hv);
+	if(locat != NOWHERE) {
+		#if 1
+		
+		#else 
+		trailAnalized(hv);
+		#endif
+
+	}
 
 
 	// If there are no informations available, hunter do researches
