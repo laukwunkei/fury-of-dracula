@@ -36,6 +36,10 @@ void decideHunterMove(HunterView hv)
 	locat= validLastLocation(hv);
 	if(locat != NOWHERE) {
 		#if 1
+		// In this case, we trace unmatured vampire firstly
+		// TODO:
+		// In thsi case, we trace dracula directly
+		// TODO:
 		
 		#else 
 		trailAnalized(hv);
