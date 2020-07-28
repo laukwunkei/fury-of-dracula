@@ -2,7 +2,8 @@
 COMP2521 assignment2
 
 Group members
-- KWUN KEI LAU - W13A
+* KWUN KEI LAU - z5265204 - W13A
+
 
 
 Some rules to help us better manage git:
