@@ -21,13 +21,13 @@
 #include "Places.h"
 
 //Helper functions
-int FindTurn (char *pastPlays);
-int is_substring (char *pastplay, char *sub, int index);
-int originalMove (int index, char * pastPlays);
-void updateLocMov (GameView gv, Player player, PlaceId newplace, PlaceId newmov);
-void rvereseArray(int arr[], int start, int end);
-void ReachableByRail(Map map, bool *reachable, PlaceId from, int rail_distance);
-PlaceId *reachablehelper(Map map, int *numLocations, PlaceId from, int drac, int railLength, int road, int sea, int rail);
+static int FindTurn (char *pastPlays);
+static int is_substring (char *pastplay, char *sub, int index);
+static int originalMove (int index, char * pastPlays);
+static void updateLocMov (GameView gv, Player player, PlaceId newplace, PlaceId newmov);
+static void rvereseArray(int arr[], int start, int end);
+static void ReachableByRail(Map map, bool *reachable, PlaceId from, int rail_distance);
+static PlaceId *reachablehelper(Map map, int *numLocations, PlaceId from, int drac, int railLength, int road, int sea, int rail);
 
 //My own declaration
 #define MAX_TRAP 3
@@ -44,10 +44,10 @@ struct gameView {
 	int characters_blood[5]; //0 to 5 represented by playsequence  
 	Round round;
 	PlaceId VampLocation; //Where Immature Vamp Hide
-	PlaceId trail_hist[NUM_PLAYERS][MAX_MOVE]; //This track of real location (show Dracular real location)
-	PlaceId move_hist[NUM_PLAYERS][MAX_MOVE]; //This track of movement history (Dracular can hide/back)
+	PlaceId trail_hist[NUM_PLAYERS][MAX_MOVE]; //This track of real location (show all real location)
+	PlaceId move_hist[NUM_PLAYERS][MAX_MOVE]; //This track of movement history (show all movements)
 	Player curr_player;
-	struct CityInfo cities[NUM_REAL_PLACES]; //array of cityinfo 
+	struct CityInfo cities[NUM_REAL_PLACES]; //array of cityinfo (trap status)
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -84,7 +84,7 @@ GameView GvNew(char *pastPlays, Message messages[])
 		}
 	}
 
-	//initialise city info 
+	//initialise city trap status
 	new->VampLocation = NOWHERE;
 	for (int i = 0; i < NUM_REAL_PLACES; i++){
 		for (int j = 0; j < MAX_TRAP; j++){
@@ -92,32 +92,36 @@ GameView GvNew(char *pastPlays, Message messages[])
 		}
 	}
 
-	//reading until end of turn 
+	/*Reading pastplay strings and update until most recent turn*/
 	int total_turn = FindTurn(pastPlays); 
 	int curr_turn = 0;
 	int index; //This serves as index for string extraction for pastplay
 				//pastPlays[index] represent current player and etc. 
+				//pastPlays[index+1] denotes location status
 	while(curr_turn < total_turn){
-		index = curr_turn * 8; 
+		index = curr_turn * 8; //Tracing to current turn
+
+		//Index 0 match with D, denoting dracular turn
 		if(is_substring(pastPlays, "D......", index)){
-			//GameInfo update
+			//Basic GameInfo update
 			curr_player = PLAYER_DRACULA;
 			new->gamescore -= SCORE_LOSS_DRACULA_TURN;
 			char place_abbrev[3] = {pastPlays[index+1], pastPlays[index+2], '\0'};
 			PlaceId new_place = placeAbbrevToId(place_abbrev);
 			PlaceId actual_move = originalMove(index, pastPlays);
-			updateLocMov(new, PLAYER_DRACULA, actual_move, new_place);
+			updateLocMov(new, PLAYER_DRACULA, actual_move, new_place); //Update both past movement and location
 
+			//Drac loss blood in sea
 			if (placeIsSea(actual_move)) {
                 new->characters_blood[PLAYER_DRACULA] -= LIFE_LOSS_SEA;
             }
-            //drac at castle
+            //Drac at castle, gain blood
             if (actual_move == TELEPORT || actual_move == CASTLE_DRACULA) {
                 new->characters_blood[PLAYER_DRACULA] += LIFE_GAIN_CASTLE_DRACULA;
             }
 
 			//Update with vampired and trap status
-            // Immature vampired placed
+            //Immature vampired placed
             if (is_substring(pastPlays, "D...V..", index)) {
                 new->VampLocation = new_place;
             }
@@ -133,13 +137,14 @@ GameView GvNew(char *pastPlays, Message messages[])
                     i++;
                 }
             }
-
             //vamp matures
             if (is_substring(pastPlays, "D....V.", index)) {
                 new->gamescore -= SCORE_LOSS_VAMPIRE_MATURES;
 				new->VampLocation = NOWHERE;
             }
-		} else { //hunter term 
+
+		} else { //hunter turn when Index 0 match with player abbreviation
+
 			if (is_substring(pastPlays, "G......", index)) curr_player = PLAYER_LORD_GODALMING;
             else if (is_substring(pastPlays, "S......", index)) curr_player = PLAYER_DR_SEWARD;
             else if (is_substring(pastPlays, "H......", index)) curr_player = PLAYER_VAN_HELSING;
@@ -148,22 +153,23 @@ GameView GvNew(char *pastPlays, Message messages[])
 			//Updating new location for hunter
 			char place_abbrev[3] = {pastPlays[index+1], pastPlays[index+2], '\0'};
 			PlaceId new_place = placeAbbrevToId(place_abbrev);
-			updateLocMov(new, curr_player, new_place, new_place);
+			updateLocMov(new, curr_player, new_place, new_place); //Both location and movement is consistent 
 			
+			//Blood gain when hunter stay in the same place
 			if (new_place == GvGetPlayerLocation(new, curr_player)){
 				new->characters_blood[curr_player] += LIFE_GAIN_REST;
 				if (new->characters_blood[curr_player] > 10){
 					new->characters_blood[curr_player] = GAME_START_HUNTER_LIFE_POINTS;
 				}
 			} 
-			if(new->characters_blood[curr_player] == 0 
-				&& GvGetPlayerLocation(new, curr_player)){
+
+			//When hunter are dead, reset its blood status
+			if(new->characters_blood[curr_player] == 0 && GvGetPlayerLocation(new, curr_player)){
 					new->characters_blood[curr_player] = GAME_START_HUNTER_LIFE_POINTS;
-				}
+			}
 
 			int get_trapped = 0; //record how many trap encounter in one city
 			//Encountering first traps in one city
-			
             if (is_substring(pastPlays, "...T...", index)) {
                 new->characters_blood[curr_player] -= LIFE_LOSS_TRAP_ENCOUNTER;
 				get_trapped++;
@@ -206,15 +212,6 @@ GameView GvNew(char *pastPlays, Message messages[])
                 new->trail_hist[curr_player][0] = ST_JOSEPH_AND_ST_MARY;
             } 
 		}
-		
-		//update city info.
-		for (int i = ADRIATIC_SEA; i < NUM_REAL_PLACES; i++){
-			for (int j = 0; j < MAX_TRAP; j++){
-				if (new->cities[i].trap[j] < curr_turn - ((TRAIL_SIZE-1)*NUM_PLAYERS)) {
-                    new->cities[i].trap[j] = false;
-                }
-            }
-		}
 		curr_player = (curr_player + 1) % NUM_PLAYERS;
 		curr_turn++;
 	}
@@ -224,6 +221,7 @@ GameView GvNew(char *pastPlays, Message messages[])
 	return new;
 }
 
+//Free gameview
 void GvFree(GameView gv)
 {
 	free(gv);
@@ -231,6 +229,8 @@ void GvFree(GameView gv)
 
 ////////////////////////////////////////////////////////////////////////
 // Game State Information
+// All game info has updated in GvNew already
+// so information can be accessed via gv struct
 
 //return current round number
 Round GvGetRound(GameView gv)
@@ -250,21 +250,25 @@ int GvGetScore(GameView gv)
 	return gv->gamescore;
 }
 
+//return health status
 int GvGetHealth(GameView gv, Player player)
 {
 	return gv->characters_blood[player];
 }
 
+//return player real location
 PlaceId GvGetPlayerLocation(GameView gv, Player player)
 {
 	return gv->trail_hist[player][0];
 }
 
+//return immature vampire location
 PlaceId GvGetVampireLocation(GameView gv)
 {
 	return gv->VampLocation;
 }
 
+//return array of traps location
 PlaceId *GvGetTrapLocations(GameView gv, int *numTraps)
 {
 	*numTraps = 0;
@@ -284,12 +288,14 @@ PlaceId *GvGetTrapLocations(GameView gv, int *numTraps)
 ////////////////////////////////////////////////////////////////////////
 // Game History
 
+//Return array of game movement history (both location and special moves)
 PlaceId *GvGetMoveHistory(GameView gv, Player player,
                           int *numReturnedMoves, bool *canFree)
 {
 	*numReturnedMoves = 0;
 	int total = 0;
 	PlaceId *history_array = malloc(sizeof(int) * MAX_MOVE);
+	//Update history array from move_hist struct
 	for(int i = 0; gv->trail_hist[player][i]!= NOWHERE; i++){
 		history_array[*numReturnedMoves] = gv->move_hist[player][i];
 		(*numReturnedMoves)++;
@@ -299,16 +305,21 @@ PlaceId *GvGetMoveHistory(GameView gv, Player player,
 	*canFree = false;
 	return history_array;
 }
-
+//Return last n previous moves 
 PlaceId *GvGetLastMoves(GameView gv, Player player, int numMoves,
                         int *numReturnedMoves, bool *canFree)
 {
-	
 	*numReturnedMoves = 0;
+	PlaceId *last_n_move = malloc(sizeof(int) * MAX_MOVE);
+	for(int i = numMoves-1; i >= 0; i--){
+		last_n_move[*numReturnedMoves] = gv->move_hist[player][i];
+		(*numReturnedMoves)++;
+	}
 	*canFree = false;
-	return NULL;
+	return last_n_move;
 }
 
+//Return location history that reveals real location
 PlaceId *GvGetLocationHistory(GameView gv, Player player,
                               int *numReturnedLocs, bool *canFree)
 {
@@ -325,31 +336,33 @@ PlaceId *GvGetLocationHistory(GameView gv, Player player,
 	return history_array;
 }
 
+//Return last n previous locs
 PlaceId *GvGetLastLocations(GameView gv, Player player, int numLocs,
                             int *numReturnedLocs, bool *canFree)
 {
 	*numReturnedLocs = 0;
-	int returned_locs = 0;
-	PlaceId *last_move = malloc(sizeof(int) * MAX_MOVE);
-	for(int i = 0; returned_locs < numLocs; i++){
-		last_move[*numReturnedLocs] = gv->trail_hist[player][i];
+	PlaceId *last_n_locs = malloc(sizeof(int) * MAX_MOVE);
+	for(int i = numLocs-1; i >= 0; i--){
+		last_n_locs[*numReturnedLocs] = gv->trail_hist[player][i];
 		(*numReturnedLocs)++;
-		returned_locs++;
 	}
 	*canFree = false;
-	return last_move;
+	return last_n_locs;
 }
 
 ////////////////////////////////////////////////////////////////////////
 // Making a Move
 
+//Return all reachable places of given place
 PlaceId *GvGetReachable(GameView gv, Player player, Round round,
                         PlaceId from, int *numReturnedLocs)
 {
 	Map game_map = MapNew();
+	//Curr is pointing at first connected place
 	ConnList curr = MapGetConnections(game_map, from);
 	PlaceId *reachable_place = malloc(sizeof(int) * MAX_MOVE);
 	*numReturnedLocs = 0;
+	//Traverse all connections and copy to reachable
 	while (curr != NULL){
 		reachable_place[*numReturnedLocs] = curr->p;
 		(*numReturnedLocs)++;
@@ -358,6 +371,7 @@ PlaceId *GvGetReachable(GameView gv, Player player, Round round,
 	return reachable_place;
 }
 
+//Return reachable places with transport constraint
 PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
                               PlaceId from, bool road, bool rail,
                               bool boat, int *numReturnedLocs)
@@ -366,7 +380,7 @@ PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
 	bool is_drac = false;
 	if (player == PLAYER_DRACULA) is_drac = true;
     int rail_distance = (player + round) % 4; //rail distance algos
-	if (!rail || is_drac) rail_distance = 0;
+	if (!rail || is_drac) rail_distance = 0; 
 
     PlaceId *reachable_place; //create array of reachable place
 	reachable_place = reachablehelper(gamemap, numReturnedLocs, from, is_drac, rail_distance, road, boat, rail);
@@ -378,7 +392,7 @@ PlaceId *GvGetReachableByType(GameView gv, Player player, Round round,
 // Your own interface functions
 
 //return total turn of gameplay
-int FindTurn (char *pastPlays)
+static int FindTurn (char *pastPlays)
 {
     //counts the spaces
     int count = 1;
@@ -391,7 +405,8 @@ int FindTurn (char *pastPlays)
     return ((i == 0) ? 0 : count);
 }
 
-void updateLocMov (GameView gv, Player player, PlaceId newplace, PlaceId newmov){
+//Update both trail and move history with latest place as index 0
+static void updateLocMov (GameView gv, Player player, PlaceId newplace, PlaceId newmov){
 	//update trail and move history
 	for (int i = MAX_MOVE - 1; i > 0; i--){
 		gv->trail_hist[player][i] = gv->trail_hist[player][i-1];
@@ -402,14 +417,15 @@ void updateLocMov (GameView gv, Player player, PlaceId newplace, PlaceId newmov)
 }
 
 //This function helps us determine character and actions from pastplay
-//sub is your expected state of the game and index determines turn of the game
-int is_substring (char *pastplay, char *sub, int index)
+//sub is your expected state of the game and index determines current player's action
+static int is_substring (char *pastplay, char *sub, int index)
 {
-    int i = 0; //position in sub string
+    int i = 0; //tracking position in sub string
     int match = true;
 
     while (pastplay[index + i] != '\0' && sub[i] != '\0') {
     	if (sub[i] != '.' || pastplay[index + i] == ' ' || pastplay[index + i] == '\0') {
+			//check if state of game match
         	if (sub[i] != pastplay[index + i]) {
             	match = false;
         	}
@@ -419,7 +435,8 @@ int is_substring (char *pastplay, char *sub, int index)
     return match;
 }
 
-int originalMove (int index, char * pastPlays)
+//Return the real location of dracula
+static int originalMove (int index, char * pastPlays)
 {
 	char place_abbrev[3] = {pastPlays[index+1], pastPlays[index+2], '\0'};
     PlaceId curr = placeAbbrevToId(place_abbrev);
@@ -430,7 +447,7 @@ int originalMove (int index, char * pastPlays)
             index -= 40;
         } else {
             assert(curr <= DOUBLE_BACK_5 && curr >= DOUBLE_BACK_1);
-            //If he doubled back, go back that many steps
+            //If he doubled back, go back that many turns
             index -= (curr - DOUBLE_BACK_1 + 1) * 40;
         }
 		char place_abbrev[3] = {pastPlays[index+1], pastPlays[index+2], '\0'};
@@ -439,7 +456,8 @@ int originalMove (int index, char * pastPlays)
     return curr;
 }
 
-void rvereseArray(int arr[], int start, int end) 
+//Return a reverse modified array 
+static void rvereseArray(int arr[], int start, int end) 
 { 
     int temp; 
     while (start < end) 
@@ -453,7 +471,7 @@ void rvereseArray(int arr[], int start, int end)
 }
 
 //Recursively update reachable array
-void ReachableByRail(Map map, bool *reachable, PlaceId from, int rail_distance)
+static void ReachableByRail(Map map, bool *reachable, PlaceId from, int rail_distance)
 {
     reachable[from] = 1;
     if (rail_distance > 0) {
@@ -466,7 +484,8 @@ void ReachableByRail(Map map, bool *reachable, PlaceId from, int rail_distance)
     }
 }
 
-PlaceId *reachablehelper(Map map, int *numLocations, PlaceId from, int drac, int railLength, int road, int sea, int rail)
+//return all reachable places
+static PlaceId *reachablehelper(Map map, int *numLocations, PlaceId from, int drac, int railLength, int road, int sea, int rail)
 {
 	//Initialise all places as unreachable
     bool *reachable = malloc(NUM_REAL_PLACES * sizeof (int));
