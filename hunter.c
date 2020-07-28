@@ -30,18 +30,37 @@ void decideHunterMove(HunterView hv)
 		return;
 	} 
 	// Check if there are useful informations available
-	// useful informations refer to moves of dracula withing 6 rounds
-	// even we can get the last move of dracula, we still need to analyse if there are 
-	// any 
+	// If we can get informations about 
 	locat= validLastLocation(hv);
 	if(locat != NOWHERE) {
 		#if 1
-		int *	
-		// In this case, we trace unmatured vampire firstly
-		// TODO:
-		// In thsi case, we trace dracula directly
-		// TODO:
 		
+		// Acquire trail and analyse
+		int * trail = HvReturnTrail(hv);
+		
+		// In this case, we trace unmatured vampire firstly
+		// If any hunter can get to the location of vampire before it become mature,
+		// kill unmature vampire first 
+		int vampLoc = HvGetVampireLocation(hv);
+		if (vampLoc != NOWHERE && HvGetScore(hv) > 300) {
+
+			// Calculate how many turns it will mature
+			int matureRound = -1;
+			int distance;		
+			for (int i = 0; i < 6; i++) {
+				if (trail[i] == NOWHERE) 
+					matureRound = 5 - i;
+			}
+			assert(matureRound != -1);
+
+			// Eastimate whether current hunter can get there
+			HvGetShortestPathTo(hv,HvGetPlayer(hv), vampLoc, &distance);
+			if (distance <= matureRound) 
+				registerBestPlay(placeAbbrevToId(vampLoc), "Have we nothing Toulouse?");
+			return;
+		}
+		// In this case, we trace dracula directly
+		registerBestPlay(placeIdToAbbrev(locat), "Wait for me dracula");
 		#else 
 		trailAnalized(hv);
 		#endif
