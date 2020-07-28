@@ -200,6 +200,8 @@ ConnList MapGetConnections(Map m, PlaceId p)
 ////////////////////////////////////////////////////////////////////////
 // My own function of map
 
+// get the shortest path from source to every location in the map and output 
+// as an array
 int *MapGetShortestPathTo(PlaceId src, int roundNum, int playerNum) {
 
 	Map g = MapNew();
