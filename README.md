@@ -11,5 +11,5 @@ Some rules to help us better manage git:
 - Remember the golden rule: git add * -> git commit -m -> git push 
 - You should notify group mate after every commit 
 - Resolve merge conflict together when you encounter one
-- Every time you tring to push something into the remote branch, you should pull all the changes in the remote branch, solve all conflicts in
-your local repository, then push.
+- Every time you trying to push something to the remote branch, you should pull all the changes in the remote branch, solve all conflicts in
+your local repository, then push(Even at this moment, you should check whether there are updates in the remote branch).
