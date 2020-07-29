@@ -16,8 +16,7 @@
 
 int randomMove(HunterView hv);
 int validLastLocation(HunterView hv);
-int trailAnalized(HunterView hv);
-
+int trailAnalized(int *trail);
 void decideHunterMove(HunterView hv)
 {
 	PlaceId locat = NOWHERE;
@@ -29,38 +28,47 @@ void decideHunterMove(HunterView hv)
 		registerBestPlay(HvGetPlayerLocation(hv,HvGetPlayer(hv)), "Hunter rest");
 		return;
 	} 
+	
+	
+	// Trace vampire firstly in the early stage of game if any location of it revealed
+	// If any hunter can get to the location of vampire before it become mature,
+	// kill unmature vampire first 
+	int vampLoc = HvGetVampireLocation(hv);
+	int *trail = HvReturnTrail(hv);
+	if (vampLoc != NOWHERE && HvGetScore(hv) > 300) {// We define "early stage of game" when game score
+													// not lower than 300
+
+		// Calculate how many turns it will mature
+		int matureRound = -1;
+		int distance;		
+		for (int i = 0; i < 6; i++) {
+			if (trail[i] == NOWHERE) 
+				matureRound = 5 - i;
+		}
+		assert(matureRound != -1);
+
+		// Eastimate whether current hunter can get there
+		HvGetShortestPathTo(hv,HvGetPlayer(hv), vampLoc, &distance);
+		if (distance <= matureRound) 
+			registerBestPlay(placeAbbrevToId(vampLoc), "Have we nothing Toulouse?");
+		return;
+	}
+	
+
 	// Check if there are useful informations available
 	// If we can get informations about 
 	locat= validLastLocation(hv);
 	if(locat != NOWHERE) {
+		
+		// My assumption about trailAnalize
 		#if 1
-		
-		// Acquire trail and analyse
-		int * trail = HvReturnTrail(hv);
-		
-		// In this case, we trace unmatured vampire firstly
-		// If any hunter can get to the location of vampire before it become mature,
-		// kill unmature vampire first 
-		int vampLoc = HvGetVampireLocation(hv);
-		if (vampLoc != NOWHERE && HvGetScore(hv) > 300) {
-
-			// Calculate how many turns it will mature
-			int matureRound = -1;
-			int distance;		
-			for (int i = 0; i < 6; i++) {
-				if (trail[i] == NOWHERE) 
-					matureRound = 5 - i;
-			}
-			assert(matureRound != -1);
-
-			// Eastimate whether current hunter can get there
-			HvGetShortestPathTo(hv,HvGetPlayer(hv), vampLoc, &distance);
-			if (distance <= matureRound) 
-				registerBestPlay(placeAbbrevToId(vampLoc), "Have we nothing Toulouse?");
-			return;
+		// Traveral the trail 		
+		for (int i = 0; i < TRAIL_SIZE; i++) {
+			if (trail[i] < 71 && trail[i] > -1)
+				registerBestPlay(placeIdToAbbrev(trail[i]), "Catch ya!");
 		}
-		// In this case, we trace dracula directly
-		registerBestPlay(placeIdToAbbrev(locat), "Wait for me dracula");
+
+
 		#else 
 		trailAnalized(hv);
 		#endif
@@ -94,6 +102,6 @@ int validLastLocation(HunterView hv) {
 // 这个function里面我们分析dracula的trail（当然这个trail有可能什么都没有，毕竟给hunter的信息是有限的）
 // 如果trail里面是有信息的，那在经过分析之后，我们返回最有用的那个location（具体怎么分析还没想好），如果trail里面
 // 没有信息，我们返回NOWHERE.
-int trailAnalized(HunterView hv) {
+int trailAnalized(int *trail) {
 	return 0;
 }
