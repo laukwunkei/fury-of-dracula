@@ -206,8 +206,12 @@ int *MapGetShortestPathTo(PlaceId src, int roundNum, int playerNum) {
 
 	Map g = MapNew();
 	assert (g != NULL);
+
+	// If source location is NOWHERE
+	if (src == NOWHERE)
+		return NULL;
 	
-	//Initialize all the needed array at once//
+	// Initialize all the needed array at once//
 	int *pred = malloc(sizeof(int) * NUM_REAL_PLACES);// We will return this array later
 	int nsteps[NUM_REAL_PLACES];
 	int visited[NUM_REAL_PLACES];
