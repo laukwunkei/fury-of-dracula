@@ -133,53 +133,53 @@ static int find_region(PlaceId ID) {
         case MARSEILLES:
         case CAGLIARI:
         case CLERMONT_FERRAND:
-		case NANTES:
-		case GENOA:
-		case FLORENCE:
-		case ROME:
-		case NAPLES:
-		case BARI:
-		case MEDITERRANEAN_SEA:
-		case TYRRHENIAN_SEA:
+	case NANTES:
+	case GENOA:
+	case FLORENCE:
+	case ROME:
+	case NAPLES:
+	case BARI:
+	case MEDITERRANEAN_SEA:
+	case TYRRHENIAN_SEA:
             return SOUTHERN_EUROPE;
 
         case PARIS:
-		case GENEVA:
-		case MILAN:
-		case VENICE:
-		case BRUSSELS:
-		case STRASBOURG:
-		case ZURICH:
-		case MUNICH:
-		case NUREMBURG:
-		case FRANKFURT:
-		case COLOGNE:
-		case LEIPZIG:
-		case BERLIN:
-		case PRAGUE:
-			return Central_Europe;
+	case GENEVA:
+	case MILAN:
+	case VENICE:
+	case BRUSSELS:
+	case STRASBOURG:
+	case ZURICH:
+	case MUNICH:
+	case NUREMBURG:
+	case FRANKFURT:
+	case COLOGNE:
+	case LEIPZIG:
+	case BERLIN:
+	case PRAGUE:
+		return Central_Europe;
 
-		case VIENNA:
-		case ZAGREB:
-		case ST_JOSEPH_AND_ST_MARY:
-		case BUDAPEST:
-		case SZEGED:
-		case SARAJEVO:
-		case BELGRADE:
-		case KLAUSENBURG:
-		case CASTLE_DRACULA:
-		case GALATZ:
-		case CONSTANTA:
-		case BLACK_SEA:
-		case VARNA:
-		case SOFIA:
-		case SALONICA:
-		case VALONA:
-		case ATHENS:
-		case IONIAN_SEA:
-		case ADRIATIC_SEA:
-		case BUCHAREST:
-			return Eastern_Europe;
+	case VIENNA:
+	case ZAGREB:
+	case ST_JOSEPH_AND_ST_MARY:
+	case BUDAPEST:
+	case SZEGED:
+	case SARAJEVO:
+	case BELGRADE:
+	case KLAUSENBURG:
+	case CASTLE_DRACULA:
+	case GALATZ:
+	case CONSTANTA:
+	case BLACK_SEA:
+	case VARNA:
+	case SOFIA:
+	case SALONICA:
+	case VALONA:
+	case ATHENS:
+	case IONIAN_SEA:
+	case ADRIATIC_SEA:
+	case BUCHAREST:
+		return Eastern_Europe;
         default:
             break;
     }
