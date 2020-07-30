@@ -11,6 +11,8 @@
 #include "dracula.h"
 #include "DraculaView.h"
 #include "Game.h"
+#include "Queue.h"
+#include "Map.h"
 /*Simple Dracular strategy*/ 
 /*My general strategy is based off dividing the map into regions 
 and find the number of hunters in each region to determine least 
@@ -23,11 +25,12 @@ into 4 cases:
 */
 
 /*Helper function*/
-static region findSafeRegion(DraculaView dv); 
-static region find_region(PlaceId ID); 
+static int findSafeRegion(DraculaView dv); 
+static int find_region(PlaceId ID); 
 static PlaceId MoveToRegion(DraculaView dv, region safe_region); 
 static PlaceId MoveInRegion(DraculaView dv, region curr_region); 
 static int distanceToClosestHunter(DraculaView dv);
+static Queue findSafeMoves(DraculaView dv);
 /*Defined regions*/
 typedef enum euro_regions {
 	NORTH_ENGLAND,
@@ -95,7 +98,7 @@ void decideDraculaMove(DraculaView dv)
 }
 
 //Return region associate with particular place
-static region find_region(PlaceId ID) {
+static int find_region(PlaceId ID) {
     switch (ID) {
         case MANCHESTER:
         case GALWAY:
@@ -184,7 +187,7 @@ static region find_region(PlaceId ID) {
 }
 
 //Finding the region with least amount of hunters
-static region find_SafeRegion(DraculaView dv){
+static int find_SafeRegion(DraculaView dv){
 	int N_Hunter[TOTAL_REGION] = {0};
 	PlaceId hunter_position; 
 	region hunter_region;
@@ -204,28 +207,181 @@ static region find_SafeRegion(DraculaView dv){
 }
 
 //Find the next move which is gives shortest path to given region
-static PlaceId MoveToRegion(DraculaView dv, region safe_region){
-	//Get an array of safe moves
-	//set two conditions: next move that's furthest to hunter and shortest path/otherwise shortest path
+static PlaceId MoveToRegion(DraculaView dv, int safe_region){
+	
+	//set target in each region to move towards
+	PlaceId target_place = UNKNOWN_PLACE;
+	if (safe_region == NORTH_ENGLAND) target_place = LONDON;
+	if (safe_region == SPAIN_PORTUGAL) target_place = BARCELONA;
+	if (safe_region == SOUTHERN_EUROPE) target_place = FLORENCE;
+	if (safe_region == Central_Europe) target_place = ZURICH;
+	if (safe_region == Eastern_Europe) target_place = CASTLE_DRACULA;
+
+	//Store possible connections
+	int n_connections;
+	PlaceId *connections = DvWhereCanIGo(dv, n_connections);
+	PlaceId next_move = UNKNOWN_PLACE;
+
+	//Return target if it's adjacent to target
+	for (int i = 0; i < n_connections; i++){
+		if (connections[i] == target_place){
+			next_move = target_place;
+			break;
+		}
+	}
+	free(connections);
+	//Finding the next moves that are closest to targe
+	//or furthest from the minimal distance to nearest hunter
+	if (next_move == UNKNOWN_PLACE){
+		Queue possible_moves = findSafeMoves(dv);
+		Map m = MapNew();
+		PlaceId from;
+		int min_step = 0;
+		int dist_H = 0;
+		while (QueueIsEmpty(possible_moves) != 0){
+			from = QueueLeave(possible_moves);
+			if(from > NUM_REAL_PLACES && QueueIsEmpty(possible_moves)){
+				next_move = from; 
+			} else {
+				int temp_step = distance_sp(from, target_place, m);
+				int temp_H_dist = minDistanceToClosestHunter(dv, m, from);
+				//We want minimum step to target and furthest to closest hunter
+				if(temp_step < min_step && temp_H_dist > dist_H){
+					dist_H = temp_H_dist;
+					min_step = temp_step;
+					next_move = from;
+				} else if(temp_step < min_step){
+					min_step = temp_step;
+					next_move = from;
+				}
+			}
+		}
+		dropQueue(possible_moves);
+		MapFree(m);
+	}
+	return next_move;
 }
 
 //Find the next move which keeps drac within region
-static PlaceId MoveInRegion(DraculaView dv, region curr_region){
+static PlaceId MoveInRegion(DraculaView dv, int curr_region){
 	int next_location = -1;
-	
+	//Always heading towards CD when Drac arrive Eastern europe
+	if (curr_region = Eastern_Europe && DvGetPlayerLocation(dv, PLAYER_DRACULA)!= CASTLE_DRACULA){
+		next_location = MoveToRegion(dv, Eastern_Europe);
+	} else {
+		Queue possibleMoves = findSafeMoves(dv);
+		while(!QueueIsEmpty(possibleMoves)){
+			next_location = QueueLeave(possibleMoves);
+			//make sure the next move is within the region
+			if(curr_region == find_region(next_location)) break;
+		}
+		dropQueue(possibleMoves);
+	}
+	return next_location;
 }
 
-//Find safe moves that doesn't conflict to next possible hunters move
-static PlaceId *findSafeMoves(DraculaView dv){
-	
+//Find safe moves that doesn't conflict to next possible hunters Locs
+static Queue findSafeMoves(DraculaView dv){
+	int n_moves;
+	PlaceId *valid_moves = DvGetValidMoves(dv, &n_moves);
+	Queue possible_moves = newQueue;
+
+	//No real location moves
+	if(valid_moves[0] > NUM_REAL_PLACES){
+		if(n_moves == 1) 
+			//Drac can only hide
+			QueueJoin(possible_moves, valid_moves[0]);
+		else 
+			//Double back
+			QueueJoin(possible_moves, valid_moves[n_moves-1]);
+	}
+	if (!QueueIsEmpty(possible_moves)){
+		Queue q = QueueFromArray(n_moves, valid_moves);
+		int *hunter_locs = PossibleHunterLocation(dv);
+		while(!QueueIsEmpty(q)){
+			int locs = QueueLeave(q);
+			//Special case when no possible locs
+			if (QueueIsEmpty(q) && QueueIsEmpty(possible_moves)){
+				QueueJoin(possible_moves, locs);
+				break;
+			}
+			//Skip with special moves
+			if(locs >= 102 && locs <= 107){
+				continue;
+			}
+			//Skip hunter possible locs
+			if(hunter_locs[locs]) continue;
+			QueueJoin(possible_moves, locs);
+		}
+	}
+	return possible_moves;
 }
 
-static PlaceId *PossibleHunterLocation(DraculaView dv){
-
+//Return an array that contain both current and possible hunter location
+static bool *PossibleHunterLocation(DraculaView dv){
+	bool *hunter_possible_locs = malloc(sizeof(bool)*NUM_REAL_PLACES);
+	//intialise the array as default false 
+	for (int i = 0; i < NUM_REAL_PLACES; i++){
+		hunter_possible_locs[i] = false;
+	}
+	//update current place for all hunters
+	for (int i = 0; i < NUM_HUNTER; i++){
+		hunter_possible_locs[DvGetPlayerLocation(dv, i)] = true;
+	}
+	//update next possible place for all hunters
+	for (int i = 0; i < NUM_HUNTER; i++){
+		int n_reachable;
+		PlaceId *hunter_reachable = DvWhereCanTheyGo(dv, i, &n_reachable);
+		for (int j = 0; j < n_reachable; j++){
+			hunter_possible_locs[hunter_reachable[j]] = true;
+		}
+	}
 }
 
-static int distanceToClosestHunter(DraculaView dv){
+//Return the closest distance to any hunter from a particular place
+static int minDistanceToClosestHunter(DraculaView dv, Map m, PlaceId from){
+	int distance[NUM_HUNTER] = {0};
+	int min = MAX_REAL_PLACE;
+	for (int i = 0; i < NUM_HUNTER; i++){
+		distance[i] = ShortestPath_distance(from, DvGetPlayerLocation(dv, i), m);
+		if(distance[i] < min){
+			min = distance[i];
+		}
+	}
+	return min;
+}
 
+//Returns the minimum no. of step to reach from src to dest
+static int ShortestPath_distance(PlaceId src, PlaceId dest, Map m){
+	bool visited[NUM_REAL_PLACES] = {false};
+    PlaceId pred[NUM_REAL_PLACES];
+    for (int i = 0; i < NUM_REAL_PLACES; i++) pred[i] = NOWHERE;
+
+    Queue q = newQueue();
+	QueueJoin(q, src);
+
+    while (queue_size(q) != 0) {
+        int l = QueueLeave(q);
+		ConnList curr = MapGetConnections(m, l);
+        for (curr; curr != NULL; curr = curr->next) {
+
+            // Check if we've seen the location before
+            if (!visited[curr->p]) {
+                visited[curr->p] = true;
+                pred[curr->p] = l;
+                if (curr->p == dest) break;
+                QueueJoin(q, curr->p);
+            }
+        }
+    }
+
+    int count = 0;
+    PlaceId tmp = dest;
+    while (pred[tmp] != src) {
+        tmp = pred[tmp];
+        count++;
+    }
+    return count;
 }
 
 
