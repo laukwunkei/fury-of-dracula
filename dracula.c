@@ -13,6 +13,7 @@
 #include "Game.h"
 #include "Queue.h"
 #include "Map.h"
+#include <string.h>
 /*Simple Dracular strategy*/ 
 /*My general strategy is based off dividing the map into regions 
 and find the number of hunters in each region to determine least 
@@ -25,11 +26,13 @@ into 4 cases:
 */
 
 /*Helper function*/
-static int findSafeRegion(DraculaView dv); 
+static int find_SafeRegion(DraculaView dv); 
 static int find_region(PlaceId ID); 
-static PlaceId MoveToRegion(DraculaView dv, region safe_region); 
-static PlaceId MoveInRegion(DraculaView dv, region curr_region); 
-static int distanceToClosestHunter(DraculaView dv);
+static PlaceId MoveToRegion(DraculaView dv, int safe_region); 
+static PlaceId MoveInRegion(DraculaView dv, int curr_region); 
+static int ShortestPath_distance(PlaceId src, PlaceId dest, Map m);
+static int minDistanceToClosestHunter(DraculaView dv, Map m, PlaceId from);
+static bool *PossibleHunterLocation(DraculaView dv);
 static Queue findSafeMoves(DraculaView dv);
 /*Defined regions*/
 typedef enum euro_regions {
@@ -54,11 +57,11 @@ void decideDraculaMove(DraculaView dv)
 	//Determine whether Castle dracula is being occupied
 	bool DC_safe = true;
 	if(LG_position == CASTLE_DRACULA || DR_position == CASTLE_DRACULA
-	|| VH_position == CASTLE_DRACULA || VH_position == CASTLE_DRACULA){
+	|| MH_position == CASTLE_DRACULA || VH_position == CASTLE_DRACULA){
 		DC_safe = false;
 	}
 	//Find starting point of the game
-	region safe_region = findSafeRegion(dv);
+	int safe_region = find_SafeRegion(dv);
 	PlaceId curr_place = DvGetPlayerLocation(dv, PLAYER_DRACULA);
 	if (DvGetRound(dv) == 0){
 		if(safe_region == NORTH_ENGLAND){
@@ -78,10 +81,10 @@ void decideDraculaMove(DraculaView dv)
 
 	//Evaluate moves in between games 
 	int blood_status = DvGetHealth(dv, PLAYER_DRACULA);
-	PlaceId curr_region = find_region(curr_place);
-	const char *next_move;
+	int curr_region = find_region(curr_place);
+	char *next_move = malloc(sizeof(char)*3);
 	//Moving towards CD if blood status is low
-	if(DvGetHealth(dv, PLAYER_DRACULA) < 10){
+	if(blood_status < 10){
 		strcpy(next_move, placeIdToAbbrev(MoveToRegion(dv, Eastern_Europe)));
 		registerBestPlay(next_move, "Catch me!");
 	}
@@ -133,53 +136,53 @@ static int find_region(PlaceId ID) {
         case MARSEILLES:
         case CAGLIARI:
         case CLERMONT_FERRAND:
-	case NANTES:
-	case GENOA:
-	case FLORENCE:
-	case ROME:
-	case NAPLES:
-	case BARI:
-	case MEDITERRANEAN_SEA:
-	case TYRRHENIAN_SEA:
+		case NANTES:
+		case GENOA:
+		case FLORENCE:
+		case ROME:
+		case NAPLES:
+		case BARI:
+		case MEDITERRANEAN_SEA:
+		case TYRRHENIAN_SEA:
             return SOUTHERN_EUROPE;
 
         case PARIS:
-	case GENEVA:
-	case MILAN:
-	case VENICE:
-	case BRUSSELS:
-	case STRASBOURG:
-	case ZURICH:
-	case MUNICH:
-	case NUREMBURG:
-	case FRANKFURT:
-	case COLOGNE:
-	case LEIPZIG:
-	case BERLIN:
-	case PRAGUE:
-		return Central_Europe;
+		case GENEVA:
+		case MILAN:
+		case VENICE:
+		case BRUSSELS:
+		case STRASBOURG:
+		case ZURICH:
+		case MUNICH:
+		case NUREMBURG:
+		case FRANKFURT:
+		case COLOGNE:
+		case LEIPZIG:
+		case BERLIN:
+		case PRAGUE:
+			return Central_Europe;
 
-	case VIENNA:
-	case ZAGREB:
-	case ST_JOSEPH_AND_ST_MARY:
-	case BUDAPEST:
-	case SZEGED:
-	case SARAJEVO:
-	case BELGRADE:
-	case KLAUSENBURG:
-	case CASTLE_DRACULA:
-	case GALATZ:
-	case CONSTANTA:
-	case BLACK_SEA:
-	case VARNA:
-	case SOFIA:
-	case SALONICA:
-	case VALONA:
-	case ATHENS:
-	case IONIAN_SEA:
-	case ADRIATIC_SEA:
-	case BUCHAREST:
-		return Eastern_Europe;
+		case VIENNA:
+		case ZAGREB:
+		case ST_JOSEPH_AND_ST_MARY:
+		case BUDAPEST:
+		case SZEGED:
+		case SARAJEVO:
+		case BELGRADE:
+		case KLAUSENBURG:
+		case CASTLE_DRACULA:
+		case GALATZ:
+		case CONSTANTA:
+		case BLACK_SEA:
+		case VARNA:
+		case SOFIA:
+		case SALONICA:
+		case VALONA:
+		case ATHENS:
+		case IONIAN_SEA:
+		case ADRIATIC_SEA:
+		case BUCHAREST:
+			return Eastern_Europe;
         default:
             break;
     }
@@ -219,7 +222,7 @@ static PlaceId MoveToRegion(DraculaView dv, int safe_region){
 
 	//Store possible connections
 	int n_connections;
-	PlaceId *connections = DvWhereCanIGo(dv, n_connections);
+	PlaceId *connections = DvWhereCanIGo(dv, &n_connections);
 	PlaceId next_move = UNKNOWN_PLACE;
 
 	//Return target if it's adjacent to target
@@ -243,7 +246,7 @@ static PlaceId MoveToRegion(DraculaView dv, int safe_region){
 			if(from > NUM_REAL_PLACES && QueueIsEmpty(possible_moves)){
 				next_move = from; 
 			} else {
-				int temp_step = distance_sp(from, target_place, m);
+				int temp_step = ShortestPath_distance(from, target_place, m);
 				int temp_H_dist = minDistanceToClosestHunter(dv, m, from);
 				//We want minimum step to target and furthest to closest hunter
 				if(temp_step < min_step && temp_H_dist > dist_H){
@@ -266,7 +269,7 @@ static PlaceId MoveToRegion(DraculaView dv, int safe_region){
 static PlaceId MoveInRegion(DraculaView dv, int curr_region){
 	int next_location = -1;
 	//Always heading towards CD when Drac arrive Eastern europe
-	if (curr_region = Eastern_Europe && DvGetPlayerLocation(dv, PLAYER_DRACULA)!= CASTLE_DRACULA){
+	if (curr_region == Eastern_Europe && DvGetPlayerLocation(dv, PLAYER_DRACULA)!= CASTLE_DRACULA){
 		next_location = MoveToRegion(dv, Eastern_Europe);
 	} else {
 		Queue possibleMoves = findSafeMoves(dv);
@@ -284,7 +287,7 @@ static PlaceId MoveInRegion(DraculaView dv, int curr_region){
 static Queue findSafeMoves(DraculaView dv){
 	int n_moves;
 	PlaceId *valid_moves = DvGetValidMoves(dv, &n_moves);
-	Queue possible_moves = newQueue;
+	Queue possible_moves = newQueue();
 
 	//No real location moves
 	if(valid_moves[0] > NUM_REAL_PLACES){
@@ -297,7 +300,7 @@ static Queue findSafeMoves(DraculaView dv){
 	}
 	if (!QueueIsEmpty(possible_moves)){
 		Queue q = QueueFromArray(n_moves, valid_moves);
-		int *hunter_locs = PossibleHunterLocation(dv);
+		bool *hunter_locs = PossibleHunterLocation(dv);
 		while(!QueueIsEmpty(q)){
 			int locs = QueueLeave(q);
 			//Special case when no possible locs
@@ -336,6 +339,7 @@ static bool *PossibleHunterLocation(DraculaView dv){
 			hunter_possible_locs[hunter_reachable[j]] = true;
 		}
 	}
+	return hunter_possible_locs;
 }
 
 //Return the closest distance to any hunter from a particular place
@@ -360,10 +364,10 @@ static int ShortestPath_distance(PlaceId src, PlaceId dest, Map m){
     Queue q = newQueue();
 	QueueJoin(q, src);
 
-    while (queue_size(q) != 0) {
+    while (!QueueIsEmpty(q)) {
         int l = QueueLeave(q);
-		ConnList curr = MapGetConnections(m, l);
-        for (curr; curr != NULL; curr = curr->next) {
+		ConnList curr;
+        for (curr = MapGetConnections(m, l); curr != NULL; curr = curr->next) {
 
             // Check if we've seen the location before
             if (!visited[curr->p]) {
