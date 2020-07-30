@@ -193,5 +193,17 @@ PlaceId *HvWhereCanTheyGoByType(HunterView hv, Player player,
 
 ////////////////////////////////////////////////////////////////////////
 // Your own interface functions
-
+void updateLocMovHv (HunterView hv, Player player, PlaceId newplace, PlaceId newmov) 
+{
+	updateLocMov(hv -> gv, player, newplace, newmov);
+}
 // TODO
+void huntersResearch(HunterView hv)
+{
+	Player all_players[NUM_PLAYERS - 1] = {PLAYER_LORD_GODALMING, PLAYER_DR_SEWARD, PLAYER_VAN_HELSING, PLAYER_MINA_HARKER};
+	for(int i = 0; i < NUM_PLAYERS - 1; i++) {
+		PlaceId cur_place = HvGetPlayerLocation(hv, all_players[i]);
+		updateLocMovHv(hv, all_players[i], NOWHERE, cur_place); // stay in the same place
+	}
+	// whether to fetch the information of the vampire here?
+}
