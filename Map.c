@@ -223,6 +223,7 @@ int *MapGetShortestPathTo(PlaceId src, int roundNum, int playerNum) {
 	///////////////////////////////////////////
 	
 	nsteps[src] = 0;
+	pred[src] = src;
 	int rN; // get round number for each 
 	Queue nQueue = newQueue();
 	QueueJoin(nQueue, src);
