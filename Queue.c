@@ -1,16 +1,5 @@
-/***************************************************************************************
-*    Title: Queue ADT 
-*    Author: John Shepherd
-* 	 From: Lab starter code from Comp2521 week07	
-*    Availability: https://cgi.cse.unsw.edu.au/~cs2521/20T2/labs/week07/index.php
-*
-***************************************************************************************/
-
-/* This is the jas's implementation for Queue ADT, We also slightly modify the source code to 
-	fit demands of FOD program.
-	
-	Many thanks to jas!
-*/
+// Queue.c ... implementation of Queue ADT
+// Written by John Shepherd, March 2013
 
 #include <assert.h>
 #include <stdio.h>
@@ -27,13 +16,14 @@ typedef struct QueueNode {
 typedef struct QueueRep {
 	QueueNode *head; // ptr to first node
 	QueueNode *tail; // ptr to last node
+	int size;
 } QueueRep;
 
 // create new empty Queue
 Queue newQueue (void)
 {
 	QueueRep *new = malloc (sizeof *new);
-	*new = (QueueRep){ .head = NULL, .tail = NULL };
+	*new = (QueueRep){ .head = NULL, .tail = NULL, .size = 0};
 	return new;
 }
 
@@ -74,6 +64,7 @@ void QueueJoin (Queue Q, Item it)
 		Q->head = new;
 	if (Q->tail != NULL)
 		Q->tail->next = new;
+	Q->size++;
 	Q->tail = new;
 }
 
@@ -88,6 +79,7 @@ Item QueueLeave (Queue Q)
 	if (Q->head == NULL)
 		Q->tail = NULL;
 	free (old);
+	Q->size--;
 	return it;
 }
 
@@ -95,4 +87,17 @@ Item QueueLeave (Queue Q)
 int QueueIsEmpty (Queue Q)
 {
 	return (Q->head == NULL);
+}
+
+// Convert a given array into queue 
+Queue QueueFromArray(int size, int *array){
+	Queue q = newQueue();
+	for(int i = 0; i < size; i++){
+		QueueJoin(q, array[i]);
+	}
+	return q;
+}
+
+int QueueSize(Queue Q){
+	return Q->size;
 }

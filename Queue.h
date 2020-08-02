@@ -1,16 +1,5 @@
-/***************************************************************************************
-*    Title: Queue ADT 
-*    Author: John Shepherd
-* 	 From: Lab starter code from Comp2521 week07	
-*    Availability: https://cgi.cse.unsw.edu.au/~cs2521/20T2/labs/week07/index.php
-*
-***************************************************************************************/
-
-/* This is the jas's implementation for Queue ADT, We also slightly modify the source code to 
-	fit this FOD program.
-	
-	Many thanks to jas!
-*/
+// Queue.h ... interface to Queue ADT
+// Written by John Shepherd, March 2013
 
 #ifndef QUEUE_H
 #define QUEUE_H
@@ -25,5 +14,6 @@ void showQueue (Queue);			// display as 3 > 5 > 4 > ...
 void QueueJoin (Queue, Item);	// add item on queue
 Item QueueLeave (Queue);		// remove item from queue
 int QueueIsEmpty (Queue);		// check for no items
-
+Queue QueueFromArray(int size, int *array); // Convert array to Queue
+int QueueSize(Queue Q); //count the length of queue
 #endif
