@@ -23,7 +23,6 @@
 #include <time.h>
 #include <stdlib.h>
 
-<<<<<<< HEAD
 typedef enum moveMode {
 	RANDOM,
 	ON_PURPOSE,
@@ -31,9 +30,6 @@ typedef enum moveMode {
 
 
 int randomMove(HunterView hv);
-=======
-void randomMove(HunterView hv);
->>>>>>> Justin2.0
 int validLastLocation(HunterView hv);
 int trailAnalized(int *trail);
 int returnNext(int dest, int Player, HunterView hv);
@@ -49,7 +45,6 @@ void decideHunterMove(HunterView hv)
 	
 	
 	
-<<<<<<< HEAD
 	// If hunter's blood is less than a perticular value, hunter rests.
 	if (HvGetHealth(hv,HvGetPlayer(hv)) <= 4) {
 		registerBestPlay(HvGetPlayerLocation(hv,HvGetPlayer(hv)), "Hunter rest");
@@ -132,38 +127,19 @@ void decideHunterMove(HunterView hv)
 			}
 		}
 	}
-
-=======
-	// Check if there are informations available
-	// 这里我们需要看看现有的信息是否能反映出dracula大致的位置，这里的信息包括dracula的trail和
-	// dracula最近移动的位置。
-	// TODO：
-	locat = HvGetLastKnownDraculaLocation(hv, &roundNum);
-	draculaTrail = HvReturnTrail(hv);
->>>>>>> Justin2.0
-
-	// If there are no informations available, hunter do researches
-	// 这里如果我们发现现有的信息没办法反映出Dracula的具体位置，我们就可以让猎人研究以获得dracula
-	// 的位置
-	// TODO:
-	if (!validLastLocation(hv)) {
-		// research
-		huntersResearch(hv);
-	}
-
-	registerBestPlay("TO", "Have we nothing Toulouse?");
+	// We can't find any useful information in the trail
+	registerBestPlay(HvGetPlayerLocation(hv, HvGetPlayer(hv)), "Have we nothing Toulouse?");
+	return;
 }
 
+
 // randomly choose a place from available location
-void randomMove(HunterView hv) {
-	Player all_players[NUM_PLAYERS - 1] = {PLAYER_LORD_GODALMING, PLAYER_DR_SEWARD, PLAYER_VAN_HELSING, PLAYER_MINA_HARKER};
+int randomMove(HunterView hv) {
 	srand(time(NULL));
-	for(int i = 0; i < NUM_PLAYERS - 1; i++) {
-		int possible_locs;
-		PlaceId *place_ids = HvWhereCanTheyGo(hv, all_players[i], &possible_locs);
-		PlaceId random_place = place_ids[rand() % (possible_locs)];
-		updateLocMovHv(hv, all_players[i], NOWHERE, random_place); // NOWHERE??? need double check
-	}
+	int numofLocs;
+	PlaceId *place_ids = HvWhereCanTheyGo(hv, HvGetPlayer(hv) ,&numofLocs);
+	PlaceId random_place = place_ids[rand() % (numofLocs)];
+	return random_place;
 }
 
 
@@ -185,12 +161,7 @@ int validLastLocation(HunterView hv) {
 // 这个function里面我们分析dracula的trail（当然这个trail有可能什么都没有，毕竟给hunter的信息是有限的）
 // 如果trail里面是有信息的，那在经过分析之后，我们返回最有用的那个location（具体怎么分析还没想好），如果trail里面
 // 没有信息，我们返回NOWHERE.
-<<<<<<< HEAD
 int trailAnalized(int *trail) {
-=======
-int trailAnalized(HunterView hv) {
-	// suggestion: 直接朝最近的place走
->>>>>>> Justin2.0
 	return 0;
 }
 

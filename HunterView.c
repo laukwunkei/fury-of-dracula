@@ -193,7 +193,6 @@ PlaceId *HvWhereCanTheyGoByType(HunterView hv, Player player,
 
 ////////////////////////////////////////////////////////////////////////
 // Your own interface functions
-<<<<<<< HEAD
 int *HvReturnTrail(HunterView hv) {
 	int returnRound= -1;
 	bool canFree = false;
@@ -208,7 +207,6 @@ int *HvReturnTrail(HunterView hv) {
 	return moveHis;
 }
 // TODO
-=======
 void updateLocMovHv (HunterView hv, Player player, PlaceId newplace, PlaceId newmov) 
 {
 	updateLocMov(hv -> gv, player, newplace, newmov);
@@ -223,4 +221,3 @@ void huntersResearch(HunterView hv)
 	}
 	// whether to fetch the information of the vampire here?
 }
->>>>>>> Justin2.0
