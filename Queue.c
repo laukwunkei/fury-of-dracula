@@ -1,5 +1,16 @@
-// Queue.c ... implementation of Queue ADT
-// Written by John Shepherd, March 2013
+/***************************************************************************************
+*    Title: Queue ADT 
+*    Author: John Shepherd
+* 	 From: Lab starter code from Comp2521 week07	
+*    Availability: https://cgi.cse.unsw.edu.au/~cs2521/20T2/labs/week07/index.php
+*
+***************************************************************************************/
+
+/* This is the jas's implementation for Queue ADT, We also slightly modify the source code to 
+	fit demands of FOD program.
+	
+	Many thanks to jas!
+*/
 
 #include <assert.h>
 #include <stdio.h>

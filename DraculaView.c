@@ -19,14 +19,14 @@
 #include "GameView.h"
 #include "Map.h"
 // add your own #includes here
-void updateTrail(char *pastplays, PlaceId *trail);
-void updateMove(char *pastplays, PlaceId *trail);
-bool in_trail(PlaceId *trail, PlaceId place);
-bool Has_hide(PlaceId *trail);
-bool Has_DB(PlaceId *trail);
-PlaceId *location_movement(DraculaView dv, int *numReturnedLocs, bool road, bool rail, bool boat);
+static void updateTrail(char *pastplays, PlaceId *trail);
+static void updateMove(char *pastplays, PlaceId *trail);
+static bool in_trail(PlaceId *trail, PlaceId place);
+static bool Has_hide(PlaceId *trail);
+static bool Has_DB(PlaceId *trail);
+static PlaceId *location_movement(DraculaView dv, int *numReturnedLocs, bool road, bool rail, bool boat);
 
-//My own struct
+//Dracula Struct
 struct draculaView {
 	GameView game;
 	PlaceId drac_trail[TRAIL_SIZE]; //real location
@@ -43,8 +43,8 @@ DraculaView DvNew(char *pastPlays, Message messages[])
 		fprintf(stderr, "Couldn't allocate DraculaView\n");
 		exit(EXIT_FAILURE);
 	}
-	//Update dracview 
-	new->game = GvNew(pastPlays, messages);
+	//Update dracview with new game state
+	new->game = GvNew(pastPlays, messages); 
 	updateTrail(pastPlays, new->drac_trail);
 	updateMove(pastPlays, new->drac_move);
 	return new;
@@ -56,7 +56,7 @@ void DvFree(DraculaView dv)
 }
 
 ////////////////////////////////////////////////////////////////////////
-// Game State Information
+// Game State Information can be achieved by returning Gv functions
 
 Round DvGetRound(DraculaView dv)
 {
@@ -86,7 +86,7 @@ PlaceId DvGetVampireLocation(DraculaView dv)
 PlaceId *DvGetTrapLocations(DraculaView dv, int *numTraps)
 {
 	*numTraps = 0;
-	//Trap array store arrays of traps
+	//Trap array that store trap information on each place
 	PlaceId *Traps_array = malloc(sizeof(int) * NUM_REAL_PLACES * 3);
 	Traps_array = GvGetTrapLocations(dv->game, numTraps);
 	return Traps_array;
@@ -98,19 +98,21 @@ PlaceId *DvGetTrapLocations(DraculaView dv, int *numTraps)
 PlaceId *DvGetValidMoves(DraculaView dv, int *numReturnedMoves)
 {
 	*numReturnedMoves = 0;
-	//Output gives me all valid location to proceed
+	//Output gives me all valid location that Dracula can proceed
 	PlaceId *output = malloc(sizeof(int) * NUM_REAL_PLACES);
 	output = location_movement(dv, numReturnedMoves, true, false, true);
-	//add special movement in addition to valid location (Hide and Double back)
+	//Add special movement in addition to valid location (Hide and Double back)
 	int trail_length = 0;
 	bool hide_status = Has_hide(dv->drac_move); 
 	bool DB_status = Has_DB(dv->drac_move); 
 	for (trail_length = 0; trail_length < TRAIL_SIZE; trail_length++){
 		if(dv->drac_trail[trail_length] == NOWHERE) break;
 	}
+	//No hide in previous trail -> add to output
 	if(!hide_status){
 		output[(*numReturnedMoves)++] = HIDE;
 	} 
+	//No DB in previous trail -> add to output
 	if(!DB_status){
 		for (int i = 0; i < GvGetRound(dv->game); i++){
 			output[(*numReturnedMoves)++] = DOUBLE_BACK_1 + i;
@@ -155,14 +157,16 @@ PlaceId *DvWhereCanTheyGoByType(DraculaView dv, Player player,
 
 /*Helper function*/
 
-//Update all moves of trail size
-void updateMove(char *pastplays, PlaceId *trail){
+/*Update all moves of trail size including special moves*/
+static void updateMove(char *pastplays, PlaceId *trail){
+	//initialise trail
 	for (int i = 0; i < TRAIL_SIZE; i++){
 		trail[i] = NOWHERE;
 	}
 	char *string_end;
 	char *index; 
 	for (string_end = pastplays; *string_end != '\0'; string_end++); 
+	//Tracing back and update the trail with most recent play
 	for (index = &pastplays[32]; index < string_end - 1; index += 40){
 		if (*index == '\0') break;
 		PlaceId original_place;
@@ -177,15 +181,16 @@ void updateMove(char *pastplays, PlaceId *trail){
 	}
 }
 
-//Modified from update move
-//update real location of dracular
-void updateTrail(char *pastplays, PlaceId *trail){
+/*Modified from update move and
+update real location of dracular*/
+static void updateTrail(char *pastplays, PlaceId *trail){
 	for (int i = 0; i < TRAIL_SIZE; i++){
 		trail[i] = NOWHERE;
 	}
 	char *string_end;
 	char *index; 
 	for (string_end = pastplays; *string_end != '\0'; string_end++); 
+	//Tracing back and update the trail with most recent play
 	for (index = &pastplays[32]; index < string_end - 1; index += 40){
 		if (*index == '\0') break;
 		PlaceId original_place;
@@ -211,7 +216,7 @@ void updateTrail(char *pastplays, PlaceId *trail){
 }
 
 //This function determine whether a given place in on drac trail
-bool in_trail(PlaceId *trail, PlaceId place){
+static bool in_trail(PlaceId *trail, PlaceId place){
     int i;
     for (i = 0; i < TRAIL_SIZE; i++)
         if (trail[i] == place) return true;
@@ -219,7 +224,7 @@ bool in_trail(PlaceId *trail, PlaceId place){
 }
 
 //Determine whether hide occurs in drac_move
-bool Has_hide(PlaceId *trail){
+static bool Has_hide(PlaceId *trail){
 	for(int i = 0; i < TRAIL_SIZE; i++){
 		if(trail[i] == HIDE) return true;
 	}
@@ -227,7 +232,7 @@ bool Has_hide(PlaceId *trail){
 }
 
 //Determine whether DoubleBack occurs in drac_move
-bool Has_DB(PlaceId *trail){
+static bool Has_DB(PlaceId *trail){
 	for(int i = 0; i < TRAIL_SIZE; i++){
 		if(trail[i] >= DOUBLE_BACK_1 && DOUBLE_BACK_5 <= trail[i]) return true;
 	}
@@ -235,7 +240,7 @@ bool Has_DB(PlaceId *trail){
 }
 
 //Return array of valid location that Drac can go
-PlaceId *location_movement(DraculaView dv, int *numReturnedLocs, bool road, bool rail, bool boat){
+static PlaceId *location_movement(DraculaView dv, int *numReturnedLocs, bool road, bool rail, bool boat){
 	*numReturnedLocs = 0;
 	PlaceId *all_place = malloc(sizeof(int) * NUM_REAL_PLACES);
 	all_place = GvGetReachableByType(dv->game, PLAYER_DRACULA, GvGetRound(dv->game), dv->drac_trail[0], true, false, true, numReturnedLocs);

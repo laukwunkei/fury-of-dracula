@@ -200,12 +200,18 @@ ConnList MapGetConnections(Map m, PlaceId p)
 ////////////////////////////////////////////////////////////////////////
 // My own function of map
 
+// get the shortest path from source to every location in the map and output 
+// as an array
 int *MapGetShortestPathTo(PlaceId src, int roundNum, int playerNum) {
 
 	Map g = MapNew();
 	assert (g != NULL);
+
+	// If source location is NOWHERE
+	if (src == NOWHERE)
+		return NULL;
 	
-	//Initialize all the needed array at once//
+	// Initialize all the needed array at once//
 	int *pred = malloc(sizeof(int) * NUM_REAL_PLACES);// We will return this array later
 	int nsteps[NUM_REAL_PLACES];
 	int visited[NUM_REAL_PLACES];
@@ -217,6 +223,7 @@ int *MapGetShortestPathTo(PlaceId src, int roundNum, int playerNum) {
 	///////////////////////////////////////////
 	
 	nsteps[src] = 0;
+	pred[src] = src;
 	int rN; // get round number for each 
 	Queue nQueue = newQueue();
 	QueueJoin(nQueue, src);

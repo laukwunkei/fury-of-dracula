@@ -381,6 +381,21 @@ int main(void)
 			if (canFree) free(moves);
 		}
 		
+		{
+			int numMoves = 0; bool canFree = false;
+			PlaceId *moves = GvGetMoveHistory(gv, PLAYER_LORD_GODALMING,
+			                                  &numMoves, &canFree);
+			assert(numMoves == 7);
+			assert(moves[0] == LISBON);
+			assert(moves[1] == CADIZ);
+			assert(moves[2] == GRANADA);
+			assert(moves[3] == ALICANTE);
+			assert(moves[4] == SARAGOSSA);
+			assert(moves[5] == SANTANDER);
+			assert(moves[6] == MADRID);
+			if (canFree) free(moves);
+		}
+
 		// Dracula's move/location history
 		{
 			int numMoves = 0; bool canFree = false;
@@ -496,5 +511,48 @@ int main(void)
 		printf("Test passed!\n");
 	}
 
+	{///////////////////////////////////////////////////////////////////
+	
+		printf("Extra: Testing last N move/location\n");
+		
+		char *trail =
+			"GLS.... SGE.... HGE.... MGE.... DST.V.. "
+			"GCA.... SGE.... HGE.... MGE.... DC?T... "
+			"GGR.... SGE.... HGE.... MGE.... DC?T... "
+			"GAL.... SGE.... HGE.... MGE.... DD3T... "
+			"GSR.... SGE.... HGE.... MGE.... DHIT... "
+			"GSN.... SGE.... HGE.... MGE.... DC?T... "
+			"GMA.... SSTTTV.";
+		
+		Message messages[32] = {};
+		GameView gv = GvNew(trail, messages);
+		
+		assert(GvGetHealth(gv, PLAYER_DR_SEWARD) ==
+				GAME_START_HUNTER_LIFE_POINTS - 2 * LIFE_LOSS_TRAP_ENCOUNTER);
+		assert(GvGetPlayerLocation(gv, PLAYER_DRACULA) == CITY_UNKNOWN);
+		assert(GvGetVampireLocation(gv) == NOWHERE);
+	
+
+		{
+			printf("Extra test on get lastmoves\n");
+			int numMoves = 0; bool canFree = false;
+			PlaceId *moves = GvGetLastMoves(gv, PLAYER_LORD_GODALMING, 3,
+                        &numMoves, &canFree);
+			assert(moves[0] == SARAGOSSA);
+			assert(moves[1] == SANTANDER);
+			assert(moves[2] == MADRID);
+		}
+
+		{
+			printf("Extra test on get lastlocs\n");
+			int numLocs = 0; bool canFree = false;
+			PlaceId *moves = GvGetLastLocations(gv, PLAYER_DRACULA, 3,
+                        &numLocs, &canFree);
+			assert(moves[0] == STRASBOURG);
+			assert(moves[1] == STRASBOURG);
+			assert(moves[2] == CITY_UNKNOWN);
+		}
+		printf("Test passed!");
+	}
 	return EXIT_SUCCESS;
 }
