@@ -42,6 +42,7 @@ void decideHunterMove(HunterView hv)
 	int currPlayer = HvGetPlayer(hv);
 	
 	
+	
 	// If hunter's blood is less than a perticular value, hunter rests.
 	if (HvGetHealth(hv,HvGetPlayer(hv)) <= 4) {
 		registerBestPlay(HvGetPlayerLocation(hv,HvGetPlayer(hv)), "Hunter rest");
@@ -51,33 +52,32 @@ void decideHunterMove(HunterView hv)
 	// Get the trail of dracula: We have to analyze the informations in the trail
 	int *trail = HvReturnTrail(hv);
 	
-	// // Trace vampire firstly in the early stage of game if any location of it revealed
-	// // If any hunter can get to the location of vampire before it become mature,
-	// // kill unmature vampire first 
-	// int vampLoc = HvGetVampireLocation(hv);
-	// if (vampLoc != NOWHERE && HvGetScore(hv) > 300) {// We define "early stage of game" when game score
-	// 												// not lower than 300
+	// Trace vampire firstly in the early stage of game if any location of it revealed
+	// If any hunter can get to the location of vampire before it become mature,
+	// kill unmature vampire first 
+	int vampLoc = HvGetVampireLocation(hv);
+	if (vampLoc < 71 &&  vampLoc > -1 && HvGetScore(hv) > 300) {// We define "early stage of game" when game score
+													// not lower than 300
+		// Calculate how many turns it will mature
+		int matureRound = -1;
+		int distance;		
+		for (int i = 0; i < 6; i++) {
+			if (trail[i] == NOWHERE) 
+				matureRound = 5 - i;
+		}
+		assert(matureRound != -1);
 
-	// 	// Calculate how many turns it will mature
-	// 	int matureRound = -1;
-	// 	int distance;		
-	// 	for (int i = 0; i < 6; i++) {
-	// 		if (trail[i] == NOWHERE) 
-	// 			matureRound = 5 - i;
-	// 	}
-	// 	assert(matureRound != -1);
-
-	// 	// Eastimate whether current hunter can get there
-	// 	HvGetShortestPathTo(hv,HvGetPlayer(hv), vampLoc, &distance);
-	// 	if (distance <= matureRound) {
-	// 		int nextMove = returnNext(vampLoc, currPlayer, hv);
-	// 		if (farEnough(hv, nextMove)) 
-	// 			registerBestPlay(placeAbbrevToId(nextMove), "Have we nothing Toulouse?");
-	// 		else
-	// 			registerBestPlay(placeAbbrevToId(randomMove(hv)), "Have we nothing Toulouse?");
-	// 		return;
-	// 	}
-	// }
+		// Eastimate whether current hunter can get there
+		HvGetShortestPathTo(hv,HvGetPlayer(hv), vampLoc, &distance);
+		if (distance <= matureRound) {
+			int nextMove = returnNext(vampLoc, currPlayer, hv);
+			if (farEnough(hv, nextMove)) 
+				registerBestPlay(placeAbbrevToId(nextMove), "Have we nothing Toulouse?");
+			else
+				registerBestPlay(placeAbbrevToId(randomMove(hv)), "Have we nothing Toulouse?");
+			return;
+		}
+	}
 	
 
 	// Check if there are useful informations available
