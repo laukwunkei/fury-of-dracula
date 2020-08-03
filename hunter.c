@@ -72,18 +72,18 @@ void decideHunterMove(HunterView hv)
 	int trailLength;
 	int *trail = HvReturnTrail(hv, &trailLength);
 	
+	
 	# if 1
-	// Trace vampire firstly in the early stage of game if any location of it revealed
+	// Trace vampire if any location of it revealed
 	// If any hunter can get to the location of vampire before it become mature,
 	// kill unmature vampire first 
 	int vampLoc = HvGetVampireLocation(hv);
-	if (vampLoc < 71 &&  vampLoc > -1 && HvGetRound(hv) < 15) {// We define "early stage of game" when game goes to
-													// less than 15 rounds
+	if (vampLoc < 71 &&  vampLoc > -1) {
 		// Calculate how many turns it will mature
 		int matureRound = -1;
 		int distance;		
-		for (int i = 0; i < 6; i++) {
-			if (trail[i] == NOWHERE) 
+		for (int i = 0; i < trailLength; i++) {
+			if (trail[i] == vampLoc) 
 				matureRound = 5 - i;
 		}
 		assert(matureRound != -1);
@@ -92,11 +92,7 @@ void decideHunterMove(HunterView hv)
 		HvGetShortestPathTo(hv,HvGetPlayer(hv), vampLoc, &distance);
 		if (distance <= matureRound) {
 			int nextMove = returnNext(vampLoc, currPlayer, hv);
-			if (farEnough(hv, nextMove)) 
-				registerBestPlay((char *)placeIdToAbbrev(nextMove), "Come for dracula");
-			else
-				registerBestPlay((char *)placeIdToAbbrev(randomMove(hv)), "Playing around here");
-			return;
+			registerBestPlay((char *)placeIdToAbbrev(nextMove), "Coming for unmature vampire");
 		}
 	}
 
