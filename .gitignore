@@ -57,6 +57,8 @@ testHunterView
 testMap
 testDraculaView
 testGameView
-
+hunter
+dracula
 
 .vscode/launch.json
+

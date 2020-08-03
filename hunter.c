@@ -9,10 +9,13 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
+// The strategy for hunters is to use research to get a rough direction of dracula using research 
+// Once hunters getting closed to dracula, they randomly moves to find out the locations in the draculs's trail.
+
 // I define two modes of operation for hunters:
 //
-// Random move: When the hunter is in the trail or close to trail if he got the current location of dracula, 
-// then move to dracula, otherwise he rondomly move
+// Random move: When the hunter is in the trail or close to trail, if he got the current location of dracula, 
+// then move to dracula, otherwise he randomly move
 //
 // On-purpose move: When the hunter is far from trail and dracula, it can move to any location near the trail as
 // long as these location being revealed.
@@ -22,11 +25,14 @@
 #include "HunterView.h"
 #include <time.h>
 #include <stdlib.h>
+#include <assert.h>
+#include <string.h>
 
 typedef enum moveMode {
 	RANDOM,
 	ON_PURPOSE,
 } MoveMode;
+
 
 
 int randomMove(HunterView hv);
@@ -39,15 +45,22 @@ MoveMode moveMode(HunterView hv, int dest);
 
 void decideHunterMove(HunterView hv)
 {
+	// When the game in the first round
+    if(HvGetRound(hv) == 0){
+    	if (HvGetPlayer(hv) == PLAYER_LORD_GODALMING) registerBestPlay("MA", "start here");
+    	else if (HvGetPlayer(hv) == PLAYER_DR_SEWARD) registerBestPlay("PA", "start here");
+    	else if (HvGetPlayer(hv) == PLAYER_VAN_HELSING) registerBestPlay("BR", "start here");
+    	else if (HvGetPlayer(hv) == PLAYER_MINA_HARKER) registerBestPlay("SO", "start here");
+    return;
+    }
+
 	PlaceId locat = NOWHERE;
-	int roundNum = 400;
 	int currPlayer = HvGetPlayer(hv);
-	
-	
 	
 	// If hunter's blood is less than a perticular value, hunter rests.
 	if (HvGetHealth(hv,HvGetPlayer(hv)) <= 4) {
-		registerBestPlay(HvGetPlayerLocation(hv,HvGetPlayer(hv)), "Hunter rest");
+		int nextLoc = HvGetPlayerLocation(hv,HvGetPlayer(hv));
+		registerBestPlay((char *)placeIdToAbbrev(nextLoc), "Hunter rest");
 		return;
 	} 
 
@@ -74,9 +87,9 @@ void decideHunterMove(HunterView hv)
 		if (distance <= matureRound) {
 			int nextMove = returnNext(vampLoc, currPlayer, hv);
 			if (farEnough(hv, nextMove)) 
-				registerBestPlay(placeAbbrevToId(nextMove), "Have we nothing Toulouse?");
+				registerBestPlay((char *)placeIdToAbbrev(nextMove), "Have we nothing Toulouse?");
 			else
-				registerBestPlay(placeAbbrevToId(randomMove(hv)), "Have we nothing Toulouse?");
+				registerBestPlay((char *)placeIdToAbbrev(randomMove(hv)), "Have we nothing Toulouse?");
 			return;
 		}
 	}
@@ -87,7 +100,7 @@ void decideHunterMove(HunterView hv)
 	locat= validLastLocation(hv);
 	if(locat != NOWHERE) {
 
-		// Traveral the trail 		
+		// Traveral the move history
 		for (int i = 0; i < TRAIL_SIZE; i++) {
 
 			// If we found doubleback move
@@ -95,7 +108,7 @@ void decideHunterMove(HunterView hv)
 
 				// We find whether the location doubleback pointed has been revealed
 				int backMove = trail[i] - DOUBLE_BACK_1 + 1;
-				// Test if double back is valid
+
 				assert(i - backMove < 0);
 				// Previous location has been revealed
 				if (trail[i - backMove] < 71 &&
@@ -103,10 +116,10 @@ void decideHunterMove(HunterView hv)
 					int nextMove = returnNext(trail[i - backMove], currPlayer, hv);
 					
 					// Eastimate which mode to use
-					if (moveMode(hv, nextMove) == RANDOM)
-						registerBestPlay(placeIdToAbbrev(randomMove(hv)), "Catch ya!");	
-					else if (moveMode(hv, nextMove) == ON_PURPOSE)
-						registerBestPlay(placeIdToAbbrev(nextMove), "Catch ya!");	
+					if (moveMode(hv, trail[i - backMove]) == RANDOM)
+						registerBestPlay((char *)placeIdToAbbrev(randomMove(hv)), "Catch ya!");	
+					else if (moveMode(hv, trail[i - backMove]) == ON_PURPOSE)
+						registerBestPlay((char *)placeIdToAbbrev(nextMove), "Catch ya!");	
 
 					return;
 				} else {
@@ -118,22 +131,49 @@ void decideHunterMove(HunterView hv)
 			if (trail[i] < 71 && trail[i] > -1) {
 				int nextMove = returnNext(trail[i], currPlayer, hv);
 				// estimate which mode to use
-				if (moveMode(hv, nextMove) == RANDOM)
-					registerBestPlay(placeIdToAbbrev(randomMove(hv)), "Catch ya!");	
-				else if (moveMode(hv, nextMove) == ON_PURPOSE)
-					registerBestPlay(placeIdToAbbrev(nextMove), "Catch ya!");
+				if (moveMode(hv, trail[i]) == RANDOM)
+					registerBestPlay((char *)placeIdToAbbrev(randomMove(hv)), "Catch ya!");	
+				else if (moveMode(hv, trail[i]) == ON_PURPOSE)
+					registerBestPlay((char *)placeIdToAbbrev(nextMove), "Catch ya!");
 				
 				return;
 			}
 		}
 	}
+	
 	// We can't find any useful information in the trail
-	registerBestPlay(HvGetPlayerLocation(hv, HvGetPlayer(hv)), "Have we nothing Toulouse?");
+	
+	// If we are in the first 6 rounds, do random moves
+	if (HvGetRound(hv) < 6) {
+		registerBestPlay((char *)placeIdToAbbrev(randomMove(hv)), "Playing around here");
+		return;
+	}
+	
+	// Eastimate if hunters have researched withing 3 turns
+	// If we have done research withing 3 rounds, we choose one move mode 
+	// tring to find out the location of dracula
+	int draculaLocRound;
+	PlaceId draculaLastLoc= HvGetLastKnownDraculaLocation(hv, &draculaLocRound);
+	if (HvGetRound(hv) - draculaLocRound - TRAIL_SIZE <= 3) {
+		
+		MoveMode mode = moveMode(hv, draculaLastLoc);
+		if (mode == RANDOM)
+			registerBestPlay((char *)placeIdToAbbrev(randomMove(hv)), "Playing around here");	
+		else if(mode == ON_PURPOSE)
+			registerBestPlay((char *)placeIdToAbbrev(draculaLocRound), "Go find dracula's place");
+
+
+	} else { // We haven't done researches withing tree rounds, research!
+		int nextMove = HvGetPlayerLocation(hv, HvGetPlayer(hv));
+		registerBestPlay((char *)placeIdToAbbrev(nextMove), "Do some research");
+	}
 	return;
 }
 
 
 // randomly choose a place from available location
+// In the meanwhile, we don't go to the same place we have been to
+// in the last turn
 int randomMove(HunterView hv) {
 	srand(time(NULL));
 	int numofLocs;
@@ -145,40 +185,35 @@ int randomMove(HunterView hv) {
 
 // If we can get last location of dracula, we need to eastimate
 // if this location is valid
-// 这个就是让我们返回一个地点，我们需要在函数里面判断是否能得到dracula最后一次活动的位置
-// 如果不能得到，返回NOWHERE。如果能得到，我们需要判断这个位置是否在六轮之内，（这个轮数可以后面修改）
-// 如果不再六轮之内，我们说这个location是不够精确的，然后返回NOWHERE。如果在六轮之内，我们返回这个地点。 
 int validLastLocation(HunterView hv) {
 	Round cur_round = HvGetRound(hv);
 	Round lastest_dracula_location_round;
 	PlaceId place_id = HvGetLastKnownDraculaLocation(hv, &lastest_dracula_location_round);
 	if ((place_id == NOWHERE) || (cur_round - lastest_dracula_location_round >= 6)) {
-		return 0;
+		return NOWHERE;
 	} 
-	return 1;
+	return place_id;
 }
 
-// 这个function里面我们分析dracula的trail（当然这个trail有可能什么都没有，毕竟给hunter的信息是有限的）
-// 如果trail里面是有信息的，那在经过分析之后，我们返回最有用的那个location（具体怎么分析还没想好），如果trail里面
-// 没有信息，我们返回NOWHERE.
-int trailAnalized(int *trail) {
-	return 0;
-}
-
+// Return next location in the path from current location to destination
 int returnNext(int dest, int Player, HunterView hv) {
 	int *path;
 	int pathLength;
 	path = HvGetShortestPathTo(hv, Player, dest, &pathLength);
 	return path[0];
 }
+ 
+// Whether current hunter is far enough from trail?
+// We define the concept "far enough" to be as far as at least one move from 
+// any moves revealed in draculs's trail, in another words, hunter should not be
+// in the trail of dracula
 bool farEnough(HunterView hv, int dest) {
 	int pathLength; 
 	HvGetShortestPathTo(hv, HvGetPlayer(hv), dest, &pathLength);
-	if (pathLength > 6)
+	if (pathLength > 1)
 		return true;
 	else
 		return false;	
-
 }
 
 
@@ -190,7 +225,7 @@ MoveMode moveMode(HunterView hv, int dest) {
 	int draculaCurrLoc = trail[0];
 	
 	if (farEnough(hv, dest) || draculaCurrLoc == dest) 
-		return RANDOM;
-	else 
 		return ON_PURPOSE;
+	else 
+		return RANDOM;
 }

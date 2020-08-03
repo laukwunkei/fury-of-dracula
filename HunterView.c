@@ -181,30 +181,39 @@ PlaceId *HvWhereCanTheyGoByType(HunterView hv, Player player,
 ////////////////////////////////////////////////////////////////////////
 // Your own interface functions
 int *HvReturnTrail(HunterView hv) {
+	#if 1
 	int returnRound= -1;
 	bool canFree = false;
-	int *moveHis = GvGetLocationHistory(hv->gv, PLAYER_DRACULA, &returnRound, &canFree);
-	int trail[TRAIL_SIZE] = {NOWHERE};
+	int *moveHis = GvGetMoveHistory(hv->gv, PLAYER_DRACULA, &returnRound, &canFree);
+	// initialize the trail
+	int *trail = malloc(sizeof(int) * TRAIL_SIZE);
 	for (int i = 0; i < TRAIL_SIZE; i++) {
-		if (i < returnRound)
+		trail[i] = NOWHERE;
+	}
+
+	for (int i = 0; i < TRAIL_SIZE; i++) {
+		if (i < TRAIL_SIZE)
 			trail[i] = moveHis[i];
 		else
 			break;
 	}
-	return moveHis;
+	return trail;
+	#else
+	return GvGetDraculaTrail(hv->gv);
+	#endif
 }
-// TODO
-void updateLocMovHv (HunterView hv, Player player, PlaceId newplace, PlaceId newmov) 
-{
-	updateLocMov(hv -> gv, player, newplace, newmov);
-}
-// TODO
-void huntersResearch(HunterView hv)
-{
-	Player all_players[NUM_PLAYERS - 1] = {PLAYER_LORD_GODALMING, PLAYER_DR_SEWARD, PLAYER_VAN_HELSING, PLAYER_MINA_HARKER};
-	for(int i = 0; i < NUM_PLAYERS - 1; i++) {
-		PlaceId cur_place = HvGetPlayerLocation(hv, all_players[i]);
-		updateLocMovHv(hv, all_players[i], NOWHERE, cur_place); // stay in the same place
-	}
-	// whether to fetch the information of the vampire here?
-}
+// // TODO
+// void updateLocMovHv (HunterView hv, Player player, PlaceId newplace, PlaceId newmov) 
+// {
+// 	updateLocMov(hv -> gv, player, newplace, newmov);
+// }
+// // TODO
+// void huntersResearch(HunterView hv)
+// {
+// 	Player all_players[NUM_PLAYERS - 1] = {PLAYER_LORD_GODALMING, PLAYER_DR_SEWARD, PLAYER_VAN_HELSING, PLAYER_MINA_HARKER};
+// 	for(int i = 0; i < NUM_PLAYERS - 1; i++) {
+// 		PlaceId cur_place = HvGetPlayerLocation(hv, all_players[i]);
+// 		updateLocMovHv(hv, all_players[i], NOWHERE, cur_place); // stay in the same place
+// 	}
+// 	// whether to fetch the information of the vampire here?
+// }

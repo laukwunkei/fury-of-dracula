@@ -217,8 +217,8 @@ PlaceId *HvWhereCanTheyGoByType(HunterView hv, Player player,
 
 // Return a trail from dracula
 int *HvReturnTrail(HunterView hv);
-// TODO
-void updateLocMovHv(HunterView hv, Player player, PlaceId newplace, PlaceId newmov);
-void huntersResearch(HunterView hv);
+
+
+
 
 #endif // !defined (FOD__HUNTER_VIEW_H_)
