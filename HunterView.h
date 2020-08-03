@@ -216,7 +216,7 @@ PlaceId *HvWhereCanTheyGoByType(HunterView hv, Player player,
 // Your own interface functions
 
 // Return a trail from dracula
-int *HvReturnTrail(HunterView hv);
+int *HvReturnTrail(HunterView hv, int *trailLength);
 
 
 
