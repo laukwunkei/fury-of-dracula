@@ -20,9 +20,13 @@
 #include "Map.h"
 #include "Places.h"
 
+///////////////////////////////////////////////////////////
+// Helper function
 
+static void revereseArray(int arr[], int start, int end);
 
 ///////////////////////////////////////////////////////////
+// Structs
 
 struct hunterView {
 	GameView gv;
@@ -180,23 +184,29 @@ PlaceId *HvWhereCanTheyGoByType(HunterView hv, Player player,
 
 ////////////////////////////////////////////////////////////////////////
 // Your own interface functions
-int *HvReturnTrail(HunterView hv) {
+int *HvReturnTrail(HunterView hv, int *trailLength) {
 	#if 1
 	int returnRound= -1;
 	bool canFree = false;
 	int *moveHis = GvGetMoveHistory(hv->gv, PLAYER_DRACULA, &returnRound, &canFree);
+	
+	// Whether the trail is bigger than 6
+	if (returnRound < 6) 
+		*trailLength = returnRound;
+	else 
+		*trailLength = TRAIL_SIZE;
+	
 	// initialize the trail
-	int *trail = malloc(sizeof(int) * TRAIL_SIZE);
-	for (int i = 0; i < TRAIL_SIZE; i++) {
+	int *trail = malloc(sizeof(int) * (*trailLength));
+	for (int i = 0; i < *trailLength; i++) {
 		trail[i] = NOWHERE;
 	}
 
-	for (int i = 0; i < TRAIL_SIZE; i++) {
-		if (i < TRAIL_SIZE)
-			trail[i] = moveHis[i];
-		else
-			break;
+	for (int i = 0; i < *trailLength; i++) {
+		trail[i] = moveHis[i];
 	}
+	
+	revereseArray(trail, 0, *trailLength - 1);
 	return trail;
 	#else
 	return GvGetDraculaTrail(hv->gv);
@@ -217,3 +227,18 @@ int *HvReturnTrail(HunterView hv) {
 // 	}
 // 	// whether to fetch the information of the vampire here?
 // }
+
+// Written by my teammate Kwun Kei Lau in the GameView (Xu Bai)
+// reverse the order of array
+static void revereseArray(int arr[], int start, int end) 
+{ 
+    int temp; 
+    while (start < end) 
+    { 
+        temp = arr[start];    
+        arr[start] = arr[end]; 
+        arr[end] = temp; 
+        start++; 
+        end--; 
+    }    
+}
