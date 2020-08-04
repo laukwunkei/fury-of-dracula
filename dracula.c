@@ -74,7 +74,7 @@ void decideDraculaMove(DraculaView dv)
 		} else if(safe_region == SPAIN_PORTUGAL){
 			registerBestPlay("BA", "Let's go FC Barcelona!");
 		} else if(safe_region == SOUTHERN_EUROPE){
-			registerBestPlay("FL", "Here's where enlightenment begins!");
+			registerBestPlay("CF", "Here's where enlightenment begins!");
 		} else if(safe_region == Central_Europe){
 			registerBestPlay("PA", "Quoi de neuf?");
 		} else if(safe_region == Eastern_Europe && DC_safe){
