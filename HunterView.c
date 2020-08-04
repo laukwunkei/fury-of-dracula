@@ -190,6 +190,7 @@ int *HvReturnTrail(HunterView hv, int *trailLength) {
 	int returnRound= -1;
 	bool canFree = false;
 	int *moveHis = GvGetMoveHistory(hv->gv, PLAYER_DRACULA, &returnRound, &canFree);
+	revereseArray(moveHis, 0, returnRound - 1);
 	
 	// Whether the trail is bigger than 6
 	if (returnRound < 6) 
@@ -207,11 +208,20 @@ int *HvReturnTrail(HunterView hv, int *trailLength) {
 		trail[i] = moveHis[i];
 	}
 	
-	revereseArray(trail, 0, *trailLength - 1);
 	return trail;
 	#else
 	return GvGetDraculaTrail(hv->gv);
 	#endif
+}
+
+
+
+int *HvReturnMoveHis(HunterView hv, int *returnNumofRound) {
+
+	bool canFree;	
+	int *moveHis = GvGetMoveHistory(hv->gv, PLAYER_DRACULA, returnNumofRound, &canFree);
+	revereseArray(moveHis, 0, *returnNumofRound - 1);
+	return moveHis;
 }
 // // TODO
 // void updateLocMovHv (HunterView hv, Player player, PlaceId newplace, PlaceId newmov) 

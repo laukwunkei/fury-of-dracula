@@ -218,6 +218,10 @@ PlaceId *HvWhereCanTheyGoByType(HunterView hv, Player player,
 // Return a trail from dracula
 int *HvReturnTrail(HunterView hv, int *trailLength);
 
+// Return the full move history of dracula, this is not in chronological，
+// It is based on the order where trail used
+int *HvReturnMoveHis(HunterView hv, int *returnNumofRound);
+
 
 
 

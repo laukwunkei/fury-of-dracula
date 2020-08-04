@@ -116,16 +116,17 @@ void decideHunterMove(HunterView hv)
 				// We find whether the location doubleback pointed has been revealed
 				int backMove = trail[i] - DOUBLE_BACK_1 + 1;
 
-				assert(i - backMove < 0);
+				int returnRounds;
+				int *dracMovHis = HvReturnMoveHis(hv, &returnRounds);
 				// Previous location has been revealed
-				if (isRealPlace(i + backMove)) {
+				if (isRealPlace(dracMovHis[i + backMove])) {
 					int nextMove = returnNext(trail[i + backMove], currPlayer, hv);
 					
 					// Eastimate which mode to use
 					if (moveMode(hv, trail[i + backMove]) == RANDOM)
 						registerBestPlay((char *)placeIdToAbbrev(randomMove(hv)), "Playing around here");	
 					else if (moveMode(hv, trail[i + backMove]) == ON_PURPOSE)
-						registerBestPlay((char *)placeIdToAbbrev(nextMove), "Come for dracula");	
+						registerBestPlay((char *)placeIdToAbbrev(nextMove), "Come for dracula");
 
 					return;
 				} else {
@@ -239,9 +240,11 @@ MoveMode moveMode(HunterView hv, int dest) {
 	if (isDoubleBack(draculaCurrLoc)) {
 		int backMove = draculaCurrLoc - DOUBLE_BACK_1 + 1;
 		if (trail[backMove] == dest)
+			free(trail);
 			return ON_PURPOSE;
 	}
 
+	free(trail);
 	// If dracula's current is not double back move 
 	if (farEnough(hv, dest) || draculaCurrLoc == dest) 
 		return ON_PURPOSE;
