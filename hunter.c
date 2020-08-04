@@ -239,9 +239,10 @@ MoveMode moveMode(HunterView hv, int dest) {
 	// When dracula current location is double back move
 	if (isDoubleBack(draculaCurrLoc)) {
 		int backMove = draculaCurrLoc - DOUBLE_BACK_1 + 1;
-		if (trail[backMove] == dest)
+		if (trail[backMove] == dest) {
 			free(trail);
 			return ON_PURPOSE;
+		}
 	}
 
 	free(trail);
