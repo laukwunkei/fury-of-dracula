@@ -36,6 +36,7 @@ int ShortestPath_distance(PlaceId src, PlaceId dest, Map m);
 int minDistanceToClosestHunter(DraculaView dv, Map m, PlaceId from);
 bool *PossibleHunterLocation(DraculaView dv);
 Queue findSafeMoves(DraculaView dv);
+bool is_safe(DraculaView dv, int region);
 
 /*Defined regions*/
 typedef enum euro_regions {
@@ -82,25 +83,26 @@ void decideDraculaMove(DraculaView dv)
 			registerBestPlay("BE", "Catch me!");
 		}
 	} else {
-		//Evaluate moves in between games 
-		int blood_status = DvGetHealth(dv, PLAYER_DRACULA);
-		int curr_region = find_region(curr_place);
-		char *next_move = malloc(sizeof(char)*3);
-		//Moving towards CD if blood status is low
-		if(blood_status < 10){
-			strcpy(next_move, placeIdToAbbrev(MoveToRegion(dv, Eastern_Europe)));
-			registerBestPlay(next_move, "Catch me!");
-		}
-		//Rotate around same region if given region is safe
-		if(curr_region == safe_region){
-			strcpy(next_move, placeIdToAbbrev(MoveInRegion(dv, curr_region)));
-			registerBestPlay(next_move, "Catch me!");
-		}
-		//Always try to move towards region with least hunters if it not
-		if(curr_region != safe_region){
-			strcpy(next_move, placeIdToAbbrev(MoveToRegion(dv, safe_region)));
-			registerBestPlay(next_move, "Keep moving!");
-		}
+
+	//Evaluate moves in between games 
+	int blood_status = DvGetHealth(dv, PLAYER_DRACULA);
+	int curr_region = find_region(curr_place);
+	char *next_move = malloc(sizeof(char)*3);
+	//Moving towards CD if blood status is low
+	if(blood_status < 10){
+		strcpy(next_move, placeIdToAbbrev(MoveToRegion(dv, Eastern_Europe)));
+		registerBestPlay(next_move, "Catch me!");
+	}
+	//Rotate around same region if given region is safe
+	if(is_safe(dv, curr_region)){
+		strcpy(next_move, placeIdToAbbrev(MoveInRegion(dv, curr_region)));
+		registerBestPlay(next_move, "Catch me!");
+	}
+	//Always try to move towards region with least hunters if it not
+	if(curr_region != safe_region){
+		strcpy(next_move, placeIdToAbbrev(MoveToRegion(dv, safe_region)));
+		registerBestPlay(next_move, "Keep moving!");
+	}
 	}
 }
 
@@ -206,6 +208,17 @@ int find_SafeRegion(DraculaView dv){
 	return min;
 }
 
+//Determine if the current region is safe
+bool is_safe(DraculaView dv, int region){
+	int count = 0;
+	for (int i = 0; i < NUM_HUNTER; i++){
+		if(find_region(DvGetPlayerLocation(dv, i)) == region){
+			count++;
+		}
+	}
+	if(count <= 1) return true;
+	return false;
+}
 
 //Find the next move which is gives shortest path to given region
 PlaceId MoveToRegion(DraculaView dv, int safe_region){
@@ -273,7 +286,7 @@ PlaceId MoveInRegion(DraculaView dv, int curr_region){
 		while(QueueSize(possibleMoves)!=0){
 			next_location = QueueLeave(possibleMoves);
 			//make sure the next move is within the region
-			if(curr_region == find_region(next_location)) break;
+			if(find_region(next_location)==curr_region) break;
 		}
 		dropQueue(possibleMoves);
 	}
@@ -306,7 +319,6 @@ Queue findSafeMoves(DraculaView dv){
 				QueueJoin(possible_moves, locs);
 				break;
 			}
-			if(locs >= HIDE && locs <= DOUBLE_BACK_5) continue;
 			//Skip hunter possible locs
 			if(hunter_locs[locs]) continue;
 			QueueJoin(possible_moves, locs);
