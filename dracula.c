@@ -8,12 +8,14 @@
 // 2020-07-10	v3.0	Team Dracula <cs2521@cse.unsw.edu.au>
 //
 ////////////////////////////////////////////////////////////////////////
+#include <stdio.h>
 #include "dracula.h"
 #include "DraculaView.h"
 #include "Game.h"
 #include "Queue.h"
 #include "Map.h"
 #include <string.h>
+#include "Places.h"
 /*Simple Dracular strategy*/ 
 /*My general strategy is based off dividing the map into regions 
 and find the number of hunters in each region to determine least 
@@ -79,26 +81,26 @@ void decideDraculaMove(DraculaView dv)
 		} else if(safe_region == Eastern_Europe && !DC_safe){
 			registerBestPlay("BE", "Catch me!");
 		}
-	}
-
-	//Evaluate moves in between games 
-	int blood_status = DvGetHealth(dv, PLAYER_DRACULA);
-	int curr_region = find_region(curr_place);
-	char *next_move = malloc(sizeof(char)*3);
-	//Moving towards CD if blood status is low
-	if(blood_status < 10){
-		strcpy(next_move, placeIdToAbbrev(MoveToRegion(dv, Eastern_Europe)));
-		registerBestPlay(next_move, "Catch me!");
-	}
-	//Rotate around same region if given region is safe
-	if(curr_region == safe_region){
-		strcpy(next_move, placeIdToAbbrev(MoveInRegion(dv, curr_region)));
-		registerBestPlay(next_move, "Catch me!");
-	}
-	//Always try to move towards region with least hunters if it not
-	if(curr_region != safe_region){
-		strcpy(next_move, placeIdToAbbrev(MoveToRegion(dv, safe_region)));
-		registerBestPlay(next_move, "Keep moving!");
+	} else {
+		//Evaluate moves in between games 
+		int blood_status = DvGetHealth(dv, PLAYER_DRACULA);
+		int curr_region = find_region(curr_place);
+		char *next_move = malloc(sizeof(char)*3);
+		//Moving towards CD if blood status is low
+		if(blood_status < 10){
+			strcpy(next_move, placeIdToAbbrev(MoveToRegion(dv, Eastern_Europe)));
+			registerBestPlay(next_move, "Catch me!");
+		}
+		//Rotate around same region if given region is safe
+		if(curr_region == safe_region){
+			strcpy(next_move, placeIdToAbbrev(MoveInRegion(dv, curr_region)));
+			registerBestPlay(next_move, "Catch me!");
+		}
+		//Always try to move towards region with least hunters if it not
+		if(curr_region != safe_region){
+			strcpy(next_move, placeIdToAbbrev(MoveToRegion(dv, safe_region)));
+			registerBestPlay(next_move, "Keep moving!");
+		}
 	}
 }
 
@@ -381,6 +383,3 @@ int ShortestPath_distance(PlaceId src, PlaceId dest, Map m){
     }
     return count;
 }
-
-
-
