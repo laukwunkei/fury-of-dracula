@@ -190,22 +190,31 @@ int randomMove(HunterView hv) {
 	PlaceId *place_ids = HvWhereCanTheyGo(hv, currPlayer, &numofLocs);
 	PlaceId *moveHis = HvReturnMoveHis(hv, &numofReturnRound, currPlayer);
 	int randomIndex = rand() % (numofLocs);
-	
-	// random number don't include the situations where hunter has already gone to that place;
-	int counter = 0; 
-	while(place_ids[randomIndex] == moveHis[1]) {
-		if (counter > numofLocs)
-			break;
 
-		if (randomIndex < numofLocs - 1)
-			randomIndex++;
-		else
-			randomIndex = 0;
-		counter++;
+	// If current player only have one location in his move history
+	if (numofReturnRound == 1)
+		return place_ids[randomIndex];
+
+	// We don't want hunter use random move to go the a place where he has already
+	// visited in last round and other hunters in there
+	for (int i = 0; i < numofLocs; i++) {
+		// whether this random loacation has other hunters
+		// if current hunter visited this random place in the last round
+		if (HvAnyOtherHunters(hv, place_ids[randomIndex]) ||
+		place_ids[randomIndex] == moveHis[1]) {
+			if (randomIndex < numofLocs - 1)
+				randomIndex++;
+			else
+				randomIndex = 0;
+		} else {
+			break;
+		}
+
 	}
 	
 	PlaceId randomPlace = place_ids[randomIndex];
 	free(place_ids);
+	free(moveHis);
 	return randomPlace; 
 }
 

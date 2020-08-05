@@ -253,3 +253,20 @@ static void revereseArray(int arr[], int start, int end)
         end--; 
     }    
 }
+
+bool HvAnyOtherHunters(HunterView hv, PlaceId dest) {
+	
+	Player currPlayer = HvGetPlayer(hv);
+	PlaceId currLocation[4];
+	for (int i = 0; i < 4; i++) {
+		currLocation[i] = HvGetPlayerLocation(hv, i);
+	}
+	// eatimate whether the location has other hunters
+	for (int i = 0; i < 4; i++) {
+		if (i == currPlayer)
+			continue;
+		if (currLocation[i] == dest)
+			return true;
+	}
+	return false;
+}

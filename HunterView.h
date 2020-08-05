@@ -222,6 +222,10 @@ int *HvReturnTrail(HunterView hv, int *trailLength);
 // It is based on the order where trail used
 int *HvReturnMoveHis(HunterView hv, int *returnNumofRound, Player player);
 
+// Find out wheter the target locations has other hunters (if current hunter is in that
+// place, we return false)
+bool HvAnyOtherHunters(HunterView hv, PlaceId dest);
+
 
 
 
