@@ -112,12 +112,13 @@ PlaceId HvGetLastKnownDraculaLocation(HunterView hv, Round *round)
 	bool canFree = false;
 	PlaceId *moveHis = GvGetMoveHistory(hv->gv, PLAYER_DRACULA, &numofReturned, &canFree);
 	PlaceId currLoc = NOWHERE;
+	PlaceId currRound = HvGetRound(hv);
 	revereseArray(moveHis, 0, numofReturned - 1);
 	for (int i = 0; i < numofReturned; i++) {
 		if (moveHis[i] != CITY_UNKNOWN && 
 		moveHis[i] != SEA_UNKNOWN) {
 			currLoc = moveHis[i];
-			*round = i;
+			*round = currRound - i;
 			break;
 		}
 	}
