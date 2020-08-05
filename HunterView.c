@@ -190,7 +190,11 @@ int *HvReturnTrail(HunterView hv, int *trailLength) {
 	int returnRound= -1;
 	bool canFree = false;
 	int *moveHis = GvGetMoveHistory(hv->gv, PLAYER_DRACULA, &returnRound, &canFree);
-	revereseArray(moveHis, 0, returnRound - 1);
+	int *tmp = malloc(sizeof(int) * returnRound);
+	for (int i = 0; i < returnRound; i++) {
+		tmp[i] = moveHis[i];
+	}
+	revereseArray(tmp, 0, returnRound - 1);
 	
 	// Whether the trail is bigger than 6
 	if (returnRound < 6) 
@@ -205,9 +209,10 @@ int *HvReturnTrail(HunterView hv, int *trailLength) {
 	}
 
 	for (int i = 0; i < *trailLength; i++) {
-		trail[i] = moveHis[i];
+		trail[i] = tmp[i];
 	}
 	
+	free(tmp);
 	return trail;
 	#else
 	return GvGetDraculaTrail(hv->gv);
@@ -220,8 +225,12 @@ int *HvReturnMoveHis(HunterView hv, int *returnNumofRound, Player player) {
 
 	bool canFree;	
 	int *moveHis = GvGetMoveHistory(hv->gv, player, returnNumofRound, &canFree);
-	revereseArray(moveHis, 0, *returnNumofRound - 1);
-	return moveHis;
+	int *tmp = malloc(sizeof(int) * *returnNumofRound);
+	for (int i = 0; i < *returnNumofRound; i++) {
+		tmp[i] = moveHis[i];
+	}
+	revereseArray(tmp, 0, *returnNumofRound - 1);
+	return tmp;
 }
 // // TODO
 // void updateLocMovHv (HunterView hv, Player player, PlaceId newplace, PlaceId newmov) 
