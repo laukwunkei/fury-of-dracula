@@ -296,7 +296,7 @@ PlaceId *GvGetMoveHistory(GameView gv, Player player,
 	int total = 0;
 	PlaceId *history_array = malloc(sizeof(int) * MAX_MOVE);
 	//Update history array from move_hist struct
-	for(int i = 0; gv->trail_hist[player][i]!= NOWHERE; i++){
+	for(int i = 0; (gv->trail_hist[player][i]!= NOWHERE && i < 30); i++){
 		history_array[*numReturnedMoves] = gv->move_hist[player][i];
 		(*numReturnedMoves)++;
 		total++;
