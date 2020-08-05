@@ -197,7 +197,7 @@ int randomMove(HunterView hv) {
 		if (counter > numofLocs)
 			break;
 
-		if (randomIndex < numofLocs)
+		if (randomIndex < numofLocs - 1)
 			randomIndex++;
 		else
 			randomIndex = 0;
