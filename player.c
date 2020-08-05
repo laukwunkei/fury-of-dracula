@@ -71,7 +71,7 @@ typedef HunterView View;
 # define decideMove decideHunterMove
 # define ViewFree HvFree
 
-# define xPastPlays "GMA.... SPA.... HBR.... MSO.... DVE.V.. GSR.... SGE.... HHA.... MVR.... DC?T... GPA.... SMR.... HNS.... MBS.... DC?T... GGE.... SCF.... HNS.... MBS.... DS?.... GST.... STO.... HHA.... MCN.... DS?.... GMU.... SSR.... HLI.... MVR.... DC?T... GMU.... SSR.... HLI.... MVR.... DC?T.V. GVE.... STO.... HNU.... MBS.... DC?T.M. GVE.... SMR.... HBR.... MIO.... DC?T.M. GVE.... SMI.... HVE.... MAS.... DCDT... GBD.... SMU.... HMU.... MVE.... DKLT... GKLTD.. SZA.... HZA...."
+# define xPastPlays "GMA.... SPA.... HBR.... MSO.... DVE.V.. GGR.... SCF.... HBR.... MSA.... DC?T... GAL.... SGE.... HHA.... MIO.... DC?T... GAL.... SGE.... HNS.... MBS.... DS?.... GSR.... SMR.... HAM.... MBS.... DS?.... GBO.... SBU.... HAM.... MCN.... DC?T... GBO.... SBU.... HAM.... MCN.... DC?T.V. GPA.... SST.... HCO.... MBS.... DC?T.M. GST.... SFR.... HST.... MIO.... DC?T.M. GBU.... SBR.... HFL.... MIO.... DCDT... GFR.... SBD.... HVE.... MSA.... DC?T... GMU.... SZA.... HVI.... MBE.... DSZT.M. GZA.... SSZTD.."
 # define xMsgs { "", "", "" }
 
 #endif

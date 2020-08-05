@@ -111,13 +111,17 @@ PlaceId HvGetLastKnownDraculaLocation(HunterView hv, Round *round)
 	int numofReturned = 0;
 	bool canFree = false;
 	PlaceId *moveHis = GvGetMoveHistory(hv->gv, PLAYER_DRACULA, &numofReturned, &canFree);
+	PlaceId *tmp = malloc(sizeof(int) * numofReturned);
+	for (int i = 0; i < numofReturned; i++) {
+		tmp[i] = moveHis[i]; 
+	}
 	PlaceId currLoc = NOWHERE;
 	PlaceId currRound = HvGetRound(hv);
-	revereseArray(moveHis, 0, numofReturned - 1);
+	revereseArray(tmp, 0, numofReturned - 1);
 	for (int i = 0; i < numofReturned; i++) {
-		if (moveHis[i] != CITY_UNKNOWN && 
-		moveHis[i] != SEA_UNKNOWN) {
-			currLoc = moveHis[i];
+		if (tmp[i] != CITY_UNKNOWN && 
+		tmp[i] != SEA_UNKNOWN) {
+			currLoc = tmp[i];
 			*round = currRound - i;
 			break;
 		}
@@ -125,6 +129,7 @@ PlaceId HvGetLastKnownDraculaLocation(HunterView hv, Round *round)
 	// If function give information to notify we can free the string
 	if (canFree == true)
 		free(moveHis);
+	free(tmp);
 	return currLoc;
 }
 
@@ -186,7 +191,7 @@ PlaceId *HvWhereCanTheyGoByType(HunterView hv, Player player,
 ////////////////////////////////////////////////////////////////////////
 // Your own interface functions
 int *HvReturnTrail(HunterView hv, int *trailLength) {
-	#if 1
+	
 	int returnRound= -1;
 	bool canFree = false;
 	int *moveHis = GvGetMoveHistory(hv->gv, PLAYER_DRACULA, &returnRound, &canFree);
@@ -214,9 +219,6 @@ int *HvReturnTrail(HunterView hv, int *trailLength) {
 	
 	free(tmp);
 	return trail;
-	#else
-	return GvGetDraculaTrail(hv->gv);
-	#endif
 }
 
 
