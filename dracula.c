@@ -102,7 +102,7 @@ void decideDraculaMove(DraculaView dv)
 	} else if(index == 13){
 		printf("13 case\n");
 		registerBestPlay("MU", "Catch me");
-	
+	}
 	/*
 	//storing all hunters current location first
 	PlaceId LG_position = DvGetPlayerLocation(dv, PLAYER_LORD_GODALMING);
