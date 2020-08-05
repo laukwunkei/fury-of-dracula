@@ -216,10 +216,10 @@ int *HvReturnTrail(HunterView hv, int *trailLength) {
 
 
 
-int *HvReturnMoveHis(HunterView hv, int *returnNumofRound) {
+int *HvReturnMoveHis(HunterView hv, int *returnNumofRound, Player player) {
 
 	bool canFree;	
-	int *moveHis = GvGetMoveHistory(hv->gv, PLAYER_DRACULA, returnNumofRound, &canFree);
+	int *moveHis = GvGetMoveHistory(hv->gv, player, returnNumofRound, &canFree);
 	revereseArray(moveHis, 0, *returnNumofRound - 1);
 	return moveHis;
 }

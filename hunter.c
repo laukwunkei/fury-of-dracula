@@ -117,7 +117,7 @@ void decideHunterMove(HunterView hv)
 				int backMove = trail[i] - DOUBLE_BACK_1 + 1;
 
 				int returnRounds;
-				int *dracMovHis = HvReturnMoveHis(hv, &returnRounds);
+				int *dracMovHis = HvReturnMoveHis(hv, &returnRounds, PLAYER_DRACULA);
 				// Previous location has been revealed
 				if (isRealPlace(dracMovHis[i + backMove])) {
 					int nextMove = returnNext(trail[i + backMove], currPlayer, hv);
@@ -183,11 +183,30 @@ void decideHunterMove(HunterView hv)
 // In the meanwhile, we don't go to the same place we have been to
 // in the last turn
 int randomMove(HunterView hv) {
+	// Generate a bunch of datas for random move
 	srand(time(NULL));
-	int numofLocs;
-	PlaceId *place_ids = HvWhereCanTheyGo(hv, HvGetPlayer(hv) ,&numofLocs);
-	PlaceId random_place = place_ids[rand() % (numofLocs)];
-	return random_place;
+	int numofLocs, numofReturnRound;// variables put into functions
+	Player currPlayer = HvGetPlayer(hv);
+	PlaceId *place_ids = HvWhereCanTheyGo(hv, currPlayer, &numofLocs);
+	PlaceId *moveHis = HvReturnMoveHis(hv, &numofReturnRound, currPlayer);
+	int randomIndex = rand() % (numofLocs);
+	
+	// random number don't include the situations where hunter has already gone to that place;
+	int counter = 0; 
+	while(place_ids[randomIndex] == moveHis[1]) {
+		if (counter > numofLocs)
+			break;
+
+		if (randomIndex < numofLocs)
+			randomIndex++;
+		else
+			randomIndex = 0;
+		counter++;
+	}
+	
+	PlaceId randomPlace = place_ids[randomIndex];
+	free(place_ids);
+	return randomPlace; 
 }
 
 
