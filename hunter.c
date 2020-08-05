@@ -166,9 +166,10 @@ void decideHunterMove(HunterView hv)
 		MoveMode mode = moveMode(hv, draculaLastLoc);
 		if (mode == RANDOM)
 			registerBestPlay((char *)placeIdToAbbrev(randomMove(hv)), "Playing around here");	
-		else if(mode == ON_PURPOSE)
-			registerBestPlay((char *)placeIdToAbbrev(draculaLocRound), "Go find dracula's place");
-
+		else if(mode == ON_PURPOSE) {
+			int nextMove = returnNext(draculaLastLoc, HvGetPlayer(hv), hv);
+			registerBestPlay((char *)placeIdToAbbrev(nextMove), "Go find dracula's place");
+		}
 
 	} else { // We haven't done researches withing tree rounds, research!
 		int nextMove = HvGetPlayerLocation(hv, HvGetPlayer(hv));

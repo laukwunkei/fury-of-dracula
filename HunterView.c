@@ -115,8 +115,7 @@ PlaceId HvGetLastKnownDraculaLocation(HunterView hv, Round *round)
 	revereseArray(moveHis, 0, numofReturned - 1);
 	for (int i = 0; i < numofReturned; i++) {
 		if (moveHis[i] != CITY_UNKNOWN && 
-		moveHis[i] != SEA_UNKNOWN && 
-		moveHis[i] != CASTLE_DRACULA) {
+		moveHis[i] != SEA_UNKNOWN) {
 			currLoc = moveHis[i];
 			*round = i;
 			break;
