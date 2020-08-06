@@ -81,22 +81,26 @@ void decideHunterMove(HunterView hv)
 	// kill unmature vampire first 
 	int vampLoc = HvGetVampireLocation(hv);
 	if (isRealPlace(vampLoc)) {
-		// Calculate how many turns it will mature
-		int matureRound = -1;
-		int distance;		
-		for (int i = 0; i < trailLength; i++) {
-			if (trail[i] == vampLoc) 
-				matureRound = 5 - i;
-		}
-		assert(matureRound != -1);
+		// When vampire in the castle dracula
+		if (vampLoc == CASTLE_DRACULA) {
+			//DO NOTHING!
+		} else {
+			// Calculate how many turns it will mature
+			int matureRound = -1;
+			int distance;		
+			for (int i = 0; i < trailLength; i++) {
+				if (trail[i] == vampLoc) 
+					matureRound = 5 - i;
+			}
 
-		// Eastimate whether current hunter can get there
-		HvGetShortestPathTo(hv,HvGetPlayer(hv), vampLoc, &distance);
-		if (distance <= matureRound) {
-			int nextMove = returnNext(vampLoc, currPlayer, hv);
-			registerBestPlay((char *)placeIdToAbbrev(nextMove), "Coming for unmature vampire");
-			free(trail);
-			return;
+			// Eastimate whether current hunter can get there
+			HvGetShortestPathTo(hv,HvGetPlayer(hv), vampLoc, &distance);
+			if (distance <= matureRound) {
+				int nextMove = returnNext(vampLoc, currPlayer, hv);
+				registerBestPlay((char *)placeIdToAbbrev(nextMove), "Coming for unmature vampire");
+				free(trail);
+				return;
+			}
 		}
 	}
 
@@ -134,6 +138,19 @@ void decideHunterMove(HunterView hv)
 				} else {
 					continue;
 				}
+			}
+
+			// If we found teleport
+			if (trail[i] == TELEPORT) {
+				int nextMove = returnNext(CASTLE_DRACULA, currPlayer, hv);
+				
+				// Eastimate which mode to use
+				if (moveMode(hv, CASTLE_DRACULA) == RANDOM)
+					registerBestPlay((char *)placeIdToAbbrev(randomMove(hv)), "Playing around here");	
+				else if (moveMode(hv, CASTLE_DRACULA) == ON_PURPOSE)
+					registerBestPlay((char *)placeIdToAbbrev(nextMove), "Come for dracula");
+				free(trail);
+				return;
 			}
 			
 			// We found real location
