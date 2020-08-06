@@ -47,6 +47,7 @@ bool farEnough(HunterView hv, int dest);
 MoveMode moveMode(HunterView hv, int dest);
 bool isRealPlace(PlaceId loc);
 bool isDoubleBack(PlaceId loc);
+PlaceId findFinalRealPlace(HunterView hv, int numofRound);
 
 
 void decideHunterMove(HunterView hv)
@@ -116,22 +117,17 @@ void decideHunterMove(HunterView hv)
 		// Traveral the move history
 		for (int i = 0; i < trailLength; i++) {
 
-			// If we found doubleback move
-			if (isDoubleBack(trail[i])) {
+			// If we found doubleback move or hide move or teleport
+			if (isDoubleBack(trail[i]) || trail[i] == HIDE || trail[i] == TELEPORT) {
 
-				// We find whether the location doubleback pointed has been revealed
-				int backMove = trail[i] - DOUBLE_BACK_1 + 1;
-
-				int returnRounds;
-				int *dracMovHis = HvReturnMoveHis(hv, &returnRounds, PLAYER_DRACULA);
-				// Previous location has been revealed
-				if (isRealPlace(dracMovHis[i + backMove])) {
-					int nextMove = returnNext(dracMovHis[i + backMove], currPlayer, hv);
+				PlaceId realLoc = findFinalRealPlace(hv, i);
+				if (isRealPlace(realLoc)) {
+					int nextMove = returnNext(realLoc, currPlayer, hv);
 					
 					// Eastimate which mode to use
-					if (moveMode(hv, dracMovHis[i + backMove]) == RANDOM)
+					if (moveMode(hv, realLoc) == RANDOM)
 						registerBestPlay((char *)placeIdToAbbrev(randomMove(hv)), "Playing around here");	
-					else if (moveMode(hv, dracMovHis[i + backMove]) == ON_PURPOSE)
+					else if (moveMode(hv, realLoc) == ON_PURPOSE)
 						registerBestPlay((char *)placeIdToAbbrev(nextMove), "Come for dracula");
 					free(trail);
 					return;
@@ -140,19 +136,6 @@ void decideHunterMove(HunterView hv)
 				}
 			}
 
-			// If we found teleport
-			if (trail[i] == TELEPORT) {
-				int nextMove = returnNext(CASTLE_DRACULA, currPlayer, hv);
-				
-				// Eastimate which mode to use
-				if (moveMode(hv, CASTLE_DRACULA) == RANDOM)
-					registerBestPlay((char *)placeIdToAbbrev(randomMove(hv)), "Playing around here");	
-				else if (moveMode(hv, CASTLE_DRACULA) == ON_PURPOSE)
-					registerBestPlay((char *)placeIdToAbbrev(nextMove), "Come for dracula");
-				free(trail);
-				return;
-			}
-			
 			// We found real location
 			if (isRealPlace(trail[i])) {
 				int nextMove = returnNext(trail[i], currPlayer, hv);
@@ -285,21 +268,8 @@ MoveMode moveMode(HunterView hv, int dest) {
 		return RANDOM;
 
 	// Get current location of dracula
-	int trailLength, hisLength;
-	int *trail = HvReturnTrail(hv, &trailLength);
-	int draculaCurrLoc = trail[0];
-	free(trail);
-	int *moveHis = HvReturnMoveHis(hv, &hisLength, PLAYER_DRACULA);
+	PlaceId draculaCurrLoc = findFinalRealPlace(hv, 0);
 
-	// When dracula current location is double back move
-	if (isDoubleBack(draculaCurrLoc)) {
-		int backMove = draculaCurrLoc - DOUBLE_BACK_1 + 1;
-		if (moveHis[backMove] == dest) {
-			return ON_PURPOSE;
-		}
-	}
-
-	// If dracula's current is not double back move 
 	if (farEnough(hv, dest) || draculaCurrLoc == dest) 
 		return ON_PURPOSE;
 	else 
@@ -319,4 +289,29 @@ bool isDoubleBack(PlaceId loc) {
 		return true;
 	else
 		return false;
+}
+
+PlaceId findFinalRealPlace(HunterView hv, int numofRound) {
+	
+	int numofReturnedRound;
+	PlaceId *moveHis = HvReturnMoveHis(hv, &numofReturnedRound, PLAYER_DRACULA);
+	// Base case, find real place
+	if (isRealPlace(moveHis[numofRound]) || moveHis[numofRound] == TELEPORT) {
+		if (moveHis[numofRound] == TELEPORT)
+			return CASTLE_DRACULA;
+		else
+			return moveHis[numofRound];
+	}
+
+	// Not real place, eastimate which one
+	if (isDoubleBack(moveHis[numofRound])) {
+		int backMove = moveHis[numofRound] - DOUBLE_BACK_1 + 1;
+		return findFinalRealPlace(hv, numofRound + backMove);
+	} else if (moveHis[numofRound] == HIDE) 
+		return findFinalRealPlace(hv, numofRound + 1);
+	else {
+		exit(EXIT_FAILURE);// We don't want this happened
+	}
+
+	
 }
