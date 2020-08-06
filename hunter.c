@@ -122,7 +122,7 @@ void decideHunterMove(HunterView hv)
 				int *dracMovHis = HvReturnMoveHis(hv, &returnRounds, PLAYER_DRACULA);
 				// Previous location has been revealed
 				if (isRealPlace(dracMovHis[i + backMove])) {
-					int nextMove = returnNext(trail[i + backMove], currPlayer, hv);
+					int nextMove = returnNext(dracMovHis[i + backMove], currPlayer, hv);
 					
 					// Eastimate which mode to use
 					if (moveMode(hv, dracMovHis[i + backMove]) == RANDOM)
