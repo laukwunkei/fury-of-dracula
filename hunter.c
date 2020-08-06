@@ -285,8 +285,11 @@ PlaceId findFinalRealPlace(HunterView hv, int numofRound) {
 	
 	int numofReturnedRound;
 	PlaceId *moveHis = HvReturnMoveHis(hv, &numofReturnedRound, PLAYER_DRACULA);
-	// Base case, find real place
-	if (isRealPlace(moveHis[numofRound]) || moveHis[numofRound] == TELEPORT) {
+	// Base case, find real place or Unknown place
+	if (isRealPlace(moveHis[numofRound]) || 
+	moveHis[numofRound] == TELEPORT ||
+	moveHis[numofRound] == CITY_UNKNOWN ||
+	moveHis[numofRound] == SEA_UNKNOWN) {
 		if (moveHis[numofRound] == TELEPORT)
 			return CASTLE_DRACULA;
 		else
