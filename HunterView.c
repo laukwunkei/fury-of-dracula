@@ -195,7 +195,12 @@ int *HvReturnTrail(HunterView hv, int *trailLength) {
 	int returnRound= -1;
 	bool canFree = false;
 	int *moveHis = GvGetMoveHistory(hv->gv, PLAYER_DRACULA, &returnRound, &canFree);
+	// Initialize the tmp array
 	int *tmp = malloc(sizeof(int) * returnRound);
+	for (int i = 0; i < returnRound; i++) {
+		tmp[i] = 0;
+	}
+
 	for (int i = 0; i < returnRound; i++) {
 		tmp[i] = moveHis[i];
 	}

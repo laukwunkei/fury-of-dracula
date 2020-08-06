@@ -95,6 +95,8 @@ void decideHunterMove(HunterView hv)
 		if (distance <= matureRound) {
 			int nextMove = returnNext(vampLoc, currPlayer, hv);
 			registerBestPlay((char *)placeIdToAbbrev(nextMove), "Coming for unmature vampire");
+			free(trail);
+			return;
 		}
 	}
 
@@ -123,11 +125,11 @@ void decideHunterMove(HunterView hv)
 					int nextMove = returnNext(trail[i + backMove], currPlayer, hv);
 					
 					// Eastimate which mode to use
-					if (moveMode(hv, trail[i + backMove]) == RANDOM)
+					if (moveMode(hv, dracMovHis[i + backMove]) == RANDOM)
 						registerBestPlay((char *)placeIdToAbbrev(randomMove(hv)), "Playing around here");	
-					else if (moveMode(hv, trail[i + backMove]) == ON_PURPOSE)
+					else if (moveMode(hv, dracMovHis[i + backMove]) == ON_PURPOSE)
 						registerBestPlay((char *)placeIdToAbbrev(nextMove), "Come for dracula");
-
+					free(trail);
 					return;
 				} else {
 					continue;
@@ -143,6 +145,7 @@ void decideHunterMove(HunterView hv)
 				else if (moveMode(hv, trail[i]) == ON_PURPOSE)
 					registerBestPlay((char *)placeIdToAbbrev(nextMove), "Come for dracula");
 				
+				free(trail);
 				return;
 			}
 		}
@@ -175,6 +178,7 @@ void decideHunterMove(HunterView hv)
 		int nextMove = HvGetPlayerLocation(hv, HvGetPlayer(hv));
 		registerBestPlay((char *)placeIdToAbbrev(nextMove), "Do some research");
 	}
+	free(trail);
 	return;
 }
 
@@ -233,10 +237,13 @@ int validLastLocation(HunterView hv) {
 
 // Return next location in the path from current location to destination
 int returnNext(int dest, int Player, HunterView hv) {
-	int *path;
+	PlaceId *path;
+	PlaceId next;
 	int pathLength;
 	path = HvGetShortestPathTo(hv, Player, dest, &pathLength);
-	return path[0];
+	next = path[0];
+	free(path);
+	return next;
 }
  
 // Whether current hunter is far enough from trail?
@@ -261,20 +268,20 @@ MoveMode moveMode(HunterView hv, int dest) {
 		return RANDOM;
 
 	// Get current location of dracula
-	int trailLength;
+	int trailLength, hisLength;
 	int *trail = HvReturnTrail(hv, &trailLength);
 	int draculaCurrLoc = trail[0];
-	
+	free(trail);
+	int *moveHis = HvReturnMoveHis(hv, &hisLength, PLAYER_DRACULA);
+
 	// When dracula current location is double back move
 	if (isDoubleBack(draculaCurrLoc)) {
 		int backMove = draculaCurrLoc - DOUBLE_BACK_1 + 1;
-		if (trail[backMove] == dest) {
-			free(trail);
+		if (moveHis[backMove] == dest) {
 			return ON_PURPOSE;
 		}
 	}
 
-	free(trail);
 	// If dracula's current is not double back move 
 	if (farEnough(hv, dest) || draculaCurrLoc == dest) 
 		return ON_PURPOSE;
