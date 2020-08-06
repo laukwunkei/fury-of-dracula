@@ -37,6 +37,7 @@ int minDistanceToClosestHunter(DraculaView dv, Map m, PlaceId from);
 bool *PossibleHunterLocation(DraculaView dv);
 Queue findSafeMoves(DraculaView dv);
 bool is_safe(DraculaView dv, int region);
+bool moveIsLegal(DraculaView dv, PlaceId move);
 
 /*Defined regions*/
 typedef enum euro_regions {
@@ -55,74 +56,24 @@ typedef enum euro_regions {
 void decideDraculaMove(DraculaView dv)
 {
 	
-	//Trailing new strategy
-	int curr_round = DvGetRound(dv);
-	int index = curr_round % 14; 
-	printf("index is %d\n", index);
-	
-	if (index == 0){
-		printf("0 case\n");
-		registerBestPlay("VE", "Catch me");
-	} else if(index == 1){
-		printf("1 case\n");
-		registerBestPlay("FL", "Catch me");
-	} else if(index == 2){
-		printf("2 case\n");
-		registerBestPlay("RO", "Catch me");
-	} else if(index == 3){
-		printf("3 case\n");
-		registerBestPlay("TS", "Catch me");
-	} else if(index == 4){
-		printf("4 case\n");
-		registerBestPlay("IO", "Catch me");
-	} else if(index == 5){
-		printf("5 case\n");
-		registerBestPlay("VA", "Catch me");
-	} else if(index == 6){
-		printf("6 case\n");
-		registerBestPlay("SO", "Catch me");
-	} else if(index == 7){
-		printf("7 case\n");
-		registerBestPlay("BC", "Catch me");
-	} else if(index == 8){
-		printf("8 case\n");
-		registerBestPlay("GA", "Catch me");
-	} else if(index == 9){
-		printf("9 case\n");
-		registerBestPlay("CD", "Catch me");
-	} else if(index == 10){
-		printf("10 case\n");
-		registerBestPlay("KL", "Catch me");
-	} else if(index == 11){
-		printf("11 case\n");
-		registerBestPlay("SZ", "Catch me");
-	} else if(index == 12){
-		printf("12 case\n");
-		registerBestPlay("ZA", "Catch me");
-	} else if(index == 13){
-		printf("13 case\n");
-		registerBestPlay("MU", "Catch me");
-	}
-	/*
 	//storing all hunters current location first
-	PlaceId LG_position = DvGetPlayerLocation(dv, PLAYER_LORD_GODALMING);
-	printf("G is at %d region\n", find_region(LG_position));
-	PlaceId DR_position = DvGetPlayerLocation(dv, PLAYER_DR_SEWARD);
-	printf("DR is at %d region\n", find_region(DR_position));
-	PlaceId VH_position = DvGetPlayerLocation(dv, PLAYER_VAN_HELSING);
-	printf("VH is at %d region\n", find_region(VH_position));
-	PlaceId MH_position = DvGetPlayerLocation(dv, PLAYER_MINA_HARKER);
-	printf("MH is at %d region\n", find_region(MH_position));
+	//PlaceId LG_position = DvGetPlayerLocation(dv, PLAYER_LORD_GODALMING);
+	//PlaceId DR_position = DvGetPlayerLocation(dv, PLAYER_DR_SEWARD);
+	//PlaceId VH_position = DvGetPlayerLocation(dv, PLAYER_VAN_HELSING);
+	//PlaceId MH_position = DvGetPlayerLocation(dv, PLAYER_MINA_HARKER);
 	//Determine whether Castle dracula is being occupied
+	/*
 	bool DC_safe = true;
 	if(LG_position == CASTLE_DRACULA || DR_position == CASTLE_DRACULA
 	|| MH_position == CASTLE_DRACULA || VH_position == CASTLE_DRACULA){
 		DC_safe = false;
 	}
+	*/
 	//Find starting point of the game
-	int safe_region = find_SafeRegion(dv);
-	PlaceId curr_place = DvGetPlayerLocation(dv, PLAYER_DRACULA);
-	printf("curr round is %d\n", DvGetRound(dv));
+	//int safe_region = find_SafeRegion(dv);
+	//PlaceId curr_place = DvGetPlayerLocation(dv, PLAYER_DRACULA);
+	//printf("curr round is %d\n", DvGetRound(dv));
+/*	
 	if (DvGetRound(dv) == 0){
 		if(safe_region == NORTH_ENGLAND){
 			registerBestPlay("LO", "Catch me at Big Ben");
@@ -137,30 +88,47 @@ void decideDraculaMove(DraculaView dv)
 		} else if(safe_region == Eastern_Europe && !DC_safe){
 			registerBestPlay("BE", "Catch me!");
 		}
+*/
+	int round = DvGetRound(dv);
+	if (round%7 == 0){
+		registerBestPlay("CD", "Catch me");
+	} else if(round%7 == 1){
+		registerBestPlay("KL", "Catch me");
+	} else if (round%7 == 2){
+		registerBestPlay("GA", "Catch me");
+	} else if (round%7 == 3){
+		registerBestPlay("D3", "Catch me");
+	} else if (round%7 == 4){
+		registerBestPlay("HI", "Catch me");
+	} else if (round%7 == 5){
+		registerBestPlay("TP", "Catch me");
+	} else if (round%7 == 6){
+		registerBestPlay("TP", "Catch me");
+	}
+/*
 	} else {
-
+		//Evaluate moves in between games 
+		int blood_status = DvGetHealth(dv, PLAYER_DRACULA);
+		int curr_region = find_region(curr_place);
+		char *next_move = malloc(sizeof(char)*3);
+		printf("drac is at %d region\n", curr_region);
+		printf("safe region is %d\n", safe_region);
+		//Moving towards CD if blood status is low
+		if(blood_status < 20){
+			strcpy(next_move, placeIdToAbbrev(MoveToRegion(dv, Eastern_Europe)));
+			registerBestPlay(next_move, "Catch me!");
+		}
+		//Rotate around same region if given region is safe
 	
-	//Evaluate moves in between games 
-	int blood_status = DvGetHealth(dv, PLAYER_DRACULA);
-	int curr_region = find_region(curr_place);
-	char *next_move = malloc(sizeof(char)*3);
-	printf("drac is at %d region\n", curr_region);
-	printf("safe region is %d\n", safe_region);
-	//Moving towards CD if blood status is low
-	if(blood_status < 10){
-		strcpy(next_move, placeIdToAbbrev(MoveToRegion(dv, Eastern_Europe)));
-		registerBestPlay(next_move, "Catch me!");
+		if(is_safe(dv, curr_region)){
+			strcpy(next_move, placeIdToAbbrev(MoveInRegion(dv, curr_region)));
+			registerBestPlay(next_move, "Catch me!");
+		} else {
+			strcpy(next_move, placeIdToAbbrev(MoveToRegion(dv, safe_region)));
+			registerBestPlay(next_move, "Keep moving!");
+		}
 	}
-	//Rotate around same region if given region is safe
-	if(is_safe(dv, curr_region)){
-		strcpy(next_move, placeIdToAbbrev(MoveInRegion(dv, curr_region)));
-		registerBestPlay(next_move, "Catch me!");
-	} else {
-		strcpy(next_move, placeIdToAbbrev(MoveToRegion(dv, safe_region)));
-		registerBestPlay(next_move, "Keep moving!");
-	}
-	}
-	*/
+*/
 }
 
 /*
@@ -183,7 +151,6 @@ int find_region(PlaceId ID) {
         case IRISH_SEA:
         case ATLANTIC_OCEAN:
             return NORTH_ENGLAND;
-
         case LISBON:
         case CADIZ:
         case MADRID:
@@ -209,7 +176,6 @@ int find_region(PlaceId ID) {
 		case MEDITERRANEAN_SEA:
 		case TYRRHENIAN_SEA:
             return SOUTHERN_EUROPE;
-
         case PARIS:
 		case GENEVA:
 		case MILAN:
@@ -225,7 +191,6 @@ int find_region(PlaceId ID) {
 		case BERLIN:
 		case PRAGUE:
 			return Central_Europe;
-
 		case VIENNA:
 		case ZAGREB:
 		case ST_JOSEPH_AND_ST_MARY:
@@ -252,9 +217,7 @@ int find_region(PlaceId ID) {
     }
     return 0;
 }
-*/
 
-/*
 //Finding the region with least amount of hunters
 int find_SafeRegion(DraculaView dv){
 	int N_Hunter[TOTAL_REGION] = {0};
@@ -267,9 +230,7 @@ int find_SafeRegion(DraculaView dv){
 	}
 	return min;
 }
-*/
 
-/*
 //Determine if the current region is safe
 bool is_safe(DraculaView dv, int region){
 	int count = 0;
@@ -281,9 +242,7 @@ bool is_safe(DraculaView dv, int region){
 	if(count <= 1) return true;
 	return false;
 }
-*/
 
-/*
 //Find the next move which is gives shortest path to given region
 PlaceId MoveToRegion(DraculaView dv, int safe_region){
 	//set target in each region to move towards
@@ -293,7 +252,6 @@ PlaceId MoveToRegion(DraculaView dv, int safe_region){
 	if (safe_region == SOUTHERN_EUROPE) target_place = FLORENCE;
 	if (safe_region == Central_Europe) target_place = ZURICH;
 	if (safe_region == Eastern_Europe) target_place = CASTLE_DRACULA;
-
 	//Store possible connections
 	int n_connections;
 	PlaceId *connections = DvWhereCanIGo(dv, &n_connections);
@@ -303,11 +261,8 @@ PlaceId MoveToRegion(DraculaView dv, int safe_region){
 		PlaceId *moves = DvGetValidMoves(dv, &n_moves);
 		return moves[0];
 	}
-	for(int i = 0; i < n_connections; i++){
-		printf("i can go %s\n", placeIdToName(connections[i]));
-	}
-	PlaceId next_move = UNKNOWN_PLACE;
 
+	PlaceId next_move = UNKNOWN_PLACE;
 	//Return target if it's adjacent to target
 	for (int i = 0; i < n_connections; i++){
 		if (connections[i] == target_place){
@@ -320,10 +275,10 @@ PlaceId MoveToRegion(DraculaView dv, int safe_region){
 	//or furthest from the minimal distance to nearest hunter
 	if (next_move == UNKNOWN_PLACE){
 		Queue possible_moves = findSafeMoves(dv);
-		//If no road route, go by sea 
+		//If no road route, go by double back or hide
 		if(QueueSize(possible_moves)==0){
 			int n_locs;
-			PlaceId *moves = DvWhereCanIGo(dv, &n_locs);
+			PlaceId *moves = DvGetValidMoves(dv, &n_locs);
 			return moves[0];
 		}
 		printf("safe move is\n");
@@ -353,40 +308,39 @@ PlaceId MoveToRegion(DraculaView dv, int safe_region){
 	return next_move;
 }
 */
-
-/*
 //Find the next move which keeps drac within region
+/*
 PlaceId MoveInRegion(DraculaView dv, int curr_region){
 	int next_location = -1;
-	int n_moves = 0;
-	PlaceId *moves = DvGetValidMoves(dv, &n_moves);
-	next_location = moves[0];
 	
 	//Always heading towards CD when Drac arrive Eastern europe
 	if (curr_region == Eastern_Europe && DvGetPlayerLocation(dv, PLAYER_DRACULA)!= CASTLE_DRACULA){
 		next_location = MoveToRegion(dv, Eastern_Europe);
 	} else {
 		int n_locs = 0;
-		PlaceId *locs = DvWhereCanIGoByType(dv, true, false, &n_locs);
+		PlaceId *locs = DvWhereCanIGoByType(dv, true, true, &n_locs);
 		for(int i = 0; i < n_locs; i++){
 			printf("i can go %d\n", locs[i]);
 		}
+		return locs[0];
+		
 		for(int i = 0; i < n_locs; i++){
-			if(find_region(locs[i]) == curr_region) 
+			if(find_region(locs[i]) == curr_region){
 				next_location = locs[i];
+			}
 		}
 		if(next_location == -1){
 			int n_moves = 0;
 			PlaceId *moves = DvGetValidMoves(dv, &n_moves);
 			next_location = moves[0];
 		}
+		
 	}
 	return next_location;
 }
 */
 
 /*
-
 //Find safe moves that doesn't conflict to next possible hunters Locs
 Queue findSafeMoves(DraculaView dv){
 	int n_moves;
@@ -414,7 +368,6 @@ Queue findSafeMoves(DraculaView dv){
 	}
 	return possible_moves;
 }
-
 //Return an array that contain both current and possible hunter location
 bool *PossibleHunterLocation(DraculaView dv){
 	bool *hunter_possible_locs = malloc(sizeof(bool)*NUM_REAL_PLACES);
@@ -422,22 +375,22 @@ bool *PossibleHunterLocation(DraculaView dv){
 	for (int i = 0; i < NUM_REAL_PLACES; i++){
 		hunter_possible_locs[i] = false;
 	}
+	
 	//update current place for all hunters
 	for (int i = 0; i < NUM_HUNTER; i++){
 		hunter_possible_locs[DvGetPlayerLocation(dv, i)] = true;
 	}
+	
 	//update next possible place for all hunters
 	for (int i = 0; i < NUM_HUNTER; i++){
 		int n_reachable;
-		PlaceId *hunter_reachable = DvWhereCanTheyGoByType(dv, i, true, true, true, &n_reachable);
+		PlaceId *hunter_reachable = DvWhereCanTheyGoByType(dv, i, true, false, true, &n_reachable);
 		for (int j = 0; j < n_reachable; j++){
 			hunter_possible_locs[hunter_reachable[j]] = true;
 		}
 	}
 	return hunter_possible_locs;
 }
-
-
 //Return the closest distance to any hunter from a particular place
 int minDistanceToClosestHunter(DraculaView dv, Map m, PlaceId from){
 	int distance[NUM_HUNTER] = {0};
@@ -450,16 +403,13 @@ int minDistanceToClosestHunter(DraculaView dv, Map m, PlaceId from){
 	}
 	return min;
 }
-
 //Returns the minimum no. of step to reach from src to dest
 int ShortestPath_distance(PlaceId src, PlaceId dest, Map m){
 	bool visited[NUM_REAL_PLACES] = {false};
     PlaceId pred[NUM_REAL_PLACES];
     for (int i = 0; i < NUM_REAL_PLACES; i++) pred[i] = NOWHERE;
-
     Queue q = newQueue();
 	QueueJoin(q, src);
-
     while (!QueueIsEmpty(q)) {
         int l = QueueLeave(q);
 		ConnList curr;
@@ -474,7 +424,6 @@ int ShortestPath_distance(PlaceId src, PlaceId dest, Map m){
             }
         }
     }
-
     int count = 0;
     PlaceId tmp = dest;
     while (pred[tmp] != src) {
