@@ -5,6 +5,7 @@ Group members
 * KWUN KEI LAU - z5265204 - W13A
 * Tang Xinran - z5300870 - W13A
 * Bai Xu - z5292197 - F09A
+* Shangchen Jiang - z5226818 - F09A
 
 
 Some rules to help us better manage git:
