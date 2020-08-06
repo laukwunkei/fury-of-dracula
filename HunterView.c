@@ -24,6 +24,7 @@
 // Helper function
 
 static void revereseArray(int arr[], int start, int end);
+static bool isDoubleBack(PlaceId loc);
 
 ///////////////////////////////////////////////////////////
 // Structs
@@ -121,6 +122,20 @@ PlaceId HvGetLastKnownDraculaLocation(HunterView hv, Round *round)
 	for (int i = 0; i < numofReturned; i++) {
 		if (placeIsReal(tmp[i])) {
 			currLoc = tmp[i];
+			*round = currRound - i;
+			break;
+		}
+		if (isDoubleBack(tmp[i]) ||
+		tmp[i] == HIDE) {
+			PlaceId realPlace = findFinalRealPlace(hv, i);
+			if (placeIsReal(realPlace)) {
+				currLoc = realPlace;
+				*round = currRound - i;
+				break;
+			}
+		}
+		if (tmp[i] == TELEPORT) {
+			currLoc = CASTLE_DRACULA;
 			*round = currRound - i;
 			break;
 		}
@@ -238,36 +253,7 @@ int *HvReturnMoveHis(HunterView hv, int *returnNumofRound, Player player) {
 	revereseArray(tmp, 0, *returnNumofRound - 1);
 	return tmp;
 }
-// // TODO
-// void updateLocMovHv (HunterView hv, Player player, PlaceId newplace, PlaceId newmov) 
-// {
-// 	updateLocMov(hv -> gv, player, newplace, newmov);
-// }
-// // TODO
-// void huntersResearch(HunterView hv)
-// {
-// 	Player all_players[NUM_PLAYERS - 1] = {PLAYER_LORD_GODALMING, PLAYER_DR_SEWARD, PLAYER_VAN_HELSING, PLAYER_MINA_HARKER};
-// 	for(int i = 0; i < NUM_PLAYERS - 1; i++) {
-// 		PlaceId cur_place = HvGetPlayerLocation(hv, all_players[i]);
-// 		updateLocMovHv(hv, all_players[i], NOWHERE, cur_place); // stay in the same place
-// 	}
-// 	// whether to fetch the information of the vampire here?
-// }
 
-// Written by my teammate Kwun Kei Lau in the GameView (Xu Bai)
-// reverse the order of array
-static void revereseArray(int arr[], int start, int end) 
-{ 
-    int temp; 
-    while (start < end) 
-    { 
-        temp = arr[start];    
-        arr[start] = arr[end]; 
-        arr[end] = temp; 
-        start++; 
-        end--; 
-    }    
-}
 
 bool HvAnyOtherHunters(HunterView hv, PlaceId dest) {
 	
@@ -284,4 +270,59 @@ bool HvAnyOtherHunters(HunterView hv, PlaceId dest) {
 			return true;
 	}
 	return false;
+}
+
+PlaceId findFinalRealPlace(HunterView hv, int numofRound) {
+	
+	int numofReturnedRound;
+	PlaceId *moveHis = HvReturnMoveHis(hv, &numofReturnedRound, PLAYER_DRACULA);
+	// Base case, find real place or Unknown place
+	if (placeIsReal(moveHis[numofRound]) || 
+	moveHis[numofRound] == TELEPORT ||
+	moveHis[numofRound] == CITY_UNKNOWN ||
+	moveHis[numofRound] == SEA_UNKNOWN) {
+		if (moveHis[numofRound] == TELEPORT)
+			return CASTLE_DRACULA;
+		else
+			return moveHis[numofRound];
+	}
+
+	// Not real place, eastimate which one
+	if (isDoubleBack(moveHis[numofRound])) {
+		int backMove = moveHis[numofRound] - DOUBLE_BACK_1 + 1;
+		return findFinalRealPlace(hv, numofRound + backMove);
+	} else if (moveHis[numofRound] == HIDE) 
+		return findFinalRealPlace(hv, numofRound + 1);
+	else {
+		exit(EXIT_FAILURE);// We don't want this happened
+	}
+
+	
+}
+
+///////////////////////////////////////////////////////////////////
+//Implementation of helper function
+
+// Eastimate whether this is a double back move
+static bool isDoubleBack(PlaceId loc) {
+	if (loc <= DOUBLE_BACK_5 && 
+	loc >= DOUBLE_BACK_1)
+		return true;
+	else
+		return false;
+}
+
+// Written by my teammate Kwun Kei Lau in the GameView (Xu Bai)
+// reverse the order of array
+static void revereseArray(int arr[], int start, int end) 
+{ 
+    int temp; 
+    while (start < end) 
+    { 
+        temp = arr[start];    
+        arr[start] = arr[end]; 
+        arr[end] = temp; 
+        start++; 
+        end--; 
+    }    
 }

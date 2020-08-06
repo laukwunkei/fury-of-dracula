@@ -39,15 +39,11 @@ typedef enum moveMode {
 
 ////////////////////////////////////
 // Helper functions
-int randomMove(HunterView hv);
-int validLastLocation(HunterView hv);
-int trailAnalized(int *trail);
-int returnNext(int dest, int Player, HunterView hv);
-bool farEnough(HunterView hv, int dest);
-MoveMode moveMode(HunterView hv, int dest);
-bool isRealPlace(PlaceId loc);
-bool isDoubleBack(PlaceId loc);
-PlaceId findFinalRealPlace(HunterView hv, int numofRound);
+static int randomMove(HunterView hv);
+static int returnNext(int dest, int Player, HunterView hv);
+static bool farEnough(HunterView hv, int dest);
+static MoveMode moveMode(HunterView hv, int dest);
+static bool isDoubleBack(PlaceId loc);
 
 
 void decideHunterMove(HunterView hv)
@@ -80,7 +76,7 @@ void decideHunterMove(HunterView hv)
 	// If any hunter can get to the location of vampire before it become mature,
 	// kill unmature vampire first 
 	int vampLoc = HvGetVampireLocation(hv);
-	if (isRealPlace(vampLoc)) {
+	if (placeIsReal(vampLoc)) {
 		// When vampire in the castle dracula
 		if (vampLoc == CASTLE_DRACULA) {
 			//DO NOTHING!
@@ -111,7 +107,7 @@ void decideHunterMove(HunterView hv)
 			if (isDoubleBack(trail[i]) || trail[i] == HIDE || trail[i] == TELEPORT) {
 
 				PlaceId realLoc = findFinalRealPlace(hv, i);
-				if (isRealPlace(realLoc)) {
+				if (placeIsReal(realLoc)) {
 					int nextMove = returnNext(realLoc, currPlayer, hv);
 					
 					// Eastimate which mode to use
@@ -127,7 +123,7 @@ void decideHunterMove(HunterView hv)
 			}
 
 			// We found real location
-			if (isRealPlace(trail[i])) {
+			if (placeIsReal(trail[i])) {
 				int nextMove = returnNext(trail[i], currPlayer, hv);
 				// estimate which mode to use
 				if (moveMode(hv, trail[i]) == RANDOM)
@@ -176,7 +172,7 @@ void decideHunterMove(HunterView hv)
 // randomly choose a place from available location
 // In the meanwhile, we don't go to the same place we have been to
 // in the last turn
-int randomMove(HunterView hv) {
+static int randomMove(HunterView hv) {
 	// Generate a bunch of datas for random move
 	srand(time(NULL));
 	int numofLocs, numofReturnRound;// variables put into functions
@@ -213,20 +209,9 @@ int randomMove(HunterView hv) {
 }
 
 
-// If we can get last location of dracula, we need to eastimate
-// if this location is valid
-int validLastLocation(HunterView hv) {
-	Round cur_round = HvGetRound(hv);
-	Round lastest_dracula_location_round;
-	PlaceId place_id = HvGetLastKnownDraculaLocation(hv, &lastest_dracula_location_round);
-	if ((place_id == NOWHERE) || (cur_round - lastest_dracula_location_round > 6)) {
-		return NOWHERE;
-	} 
-	return place_id;
-}
 
 // Return next location in the path from current location to destination
-int returnNext(int dest, int Player, HunterView hv) {
+static int returnNext(int dest, int Player, HunterView hv) {
 	PlaceId *path;
 	PlaceId next;
 	int pathLength;
@@ -240,7 +225,7 @@ int returnNext(int dest, int Player, HunterView hv) {
 // We define the concept "far enough" to be as far as at least one move from 
 // any moves revealed in draculs's trail, in another words, hunter should not be
 // in the trail of dracula
-bool farEnough(HunterView hv, int dest) {
+static bool farEnough(HunterView hv, int dest) {
 	int pathLength; 
 	HvGetShortestPathTo(hv, HvGetPlayer(hv), dest, &pathLength);
 	if (pathLength >= 3)
@@ -252,9 +237,9 @@ bool farEnough(HunterView hv, int dest) {
 
 // Return move mode based on whether hunter is far from 
 // the dracula and its trail.
-MoveMode moveMode(HunterView hv, int dest) {
+static MoveMode moveMode(HunterView hv, int dest) {
 	
-	if(!isRealPlace(dest))
+	if(!placeIsReal(dest))
 		return RANDOM;
 
 	// Get current location of dracula
@@ -266,14 +251,8 @@ MoveMode moveMode(HunterView hv, int dest) {
 		return RANDOM;
 }
 
-bool isRealPlace(PlaceId loc) {
-	if(loc < 71 &&  loc > -1)
-		return true;
-	else 
-		return false;
-}
 
-bool isDoubleBack(PlaceId loc) {
+static bool isDoubleBack(PlaceId loc) {
 	if (loc <= DOUBLE_BACK_5 && 
 	loc >= DOUBLE_BACK_1)
 		return true;
@@ -281,30 +260,3 @@ bool isDoubleBack(PlaceId loc) {
 		return false;
 }
 
-PlaceId findFinalRealPlace(HunterView hv, int numofRound) {
-	
-	int numofReturnedRound;
-	PlaceId *moveHis = HvReturnMoveHis(hv, &numofReturnedRound, PLAYER_DRACULA);
-	// Base case, find real place or Unknown place
-	if (isRealPlace(moveHis[numofRound]) || 
-	moveHis[numofRound] == TELEPORT ||
-	moveHis[numofRound] == CITY_UNKNOWN ||
-	moveHis[numofRound] == SEA_UNKNOWN) {
-		if (moveHis[numofRound] == TELEPORT)
-			return CASTLE_DRACULA;
-		else
-			return moveHis[numofRound];
-	}
-
-	// Not real place, eastimate which one
-	if (isDoubleBack(moveHis[numofRound])) {
-		int backMove = moveHis[numofRound] - DOUBLE_BACK_1 + 1;
-		return findFinalRealPlace(hv, numofRound + backMove);
-	} else if (moveHis[numofRound] == HIDE) 
-		return findFinalRealPlace(hv, numofRound + 1);
-	else {
-		exit(EXIT_FAILURE);// We don't want this happened
-	}
-
-	
-}

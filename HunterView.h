@@ -226,6 +226,10 @@ int *HvReturnMoveHis(HunterView hv, int *returnNumofRound, Player player);
 // place, we return false)
 bool HvAnyOtherHunters(HunterView hv, PlaceId dest);
 
+// If we find location like doubleback or hide, we use this funcition to deduce
+// the final location for that.
+PlaceId findFinalRealPlace(HunterView hv, int numofRound);
+
 
 
 
