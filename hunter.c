@@ -61,7 +61,6 @@ void decideHunterMove(HunterView hv)
     return;
     }
 
-	PlaceId locat = NOWHERE;
 	int currPlayer = HvGetPlayer(hv);
 	
 	// If hunter's blood is less than a perticular value, hunter rests.
@@ -76,7 +75,7 @@ void decideHunterMove(HunterView hv)
 	int *trail = HvReturnTrail(hv, &trailLength);
 	
 	
-	# if 1
+
 	// Trace vampire if any location of it revealed
 	// If any hunter can get to the location of vampire before it become mature,
 	// kill unmature vampire first 
@@ -105,16 +104,7 @@ void decideHunterMove(HunterView hv)
 		}
 	}
 
-	#else
-	#endif
-	
-
-	// Check if there are useful informations available
-	// If we can get informations about 
-	locat = validLastLocation(hv);
-	if(locat != NOWHERE) {
-
-		// Traveral the move history
+		// Traveral dracula's trail
 		for (int i = 0; i < trailLength; i++) {
 
 			// If we found doubleback move or hide move or teleport
@@ -149,7 +139,7 @@ void decideHunterMove(HunterView hv)
 				return;
 			}
 		}
-	}
+	
 	
 	// We can't find any useful information in the trail
 	// If we are in the first 6 rounds, do random moves
