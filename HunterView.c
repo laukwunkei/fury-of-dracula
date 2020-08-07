@@ -48,10 +48,17 @@ HunterView HvNew(char *pastPlays, Message messages[])
 	}
 	new->gv = GvNew(pastPlays,messages);
 
+	// If this is the first round of the game
+	if (GvGetRound(new->gv) == 0) {
+		for (int i = 0; i < NUM_PLAYERS - 1; i++) {
+			new->hShortestP[i] = NULL;
+		} 
+	} else {
 	// Initialize the shortest path
-	for (int i = 0; i < NUM_PLAYERS - 1; i++) {
-		new->hShortestP[i] = MapGetShortestPathTo(GvGetPlayerLocation(new->gv, i),GvGetRound(new->gv),i);
-	} 
+		for (int i = 0; i < NUM_PLAYERS - 1; i++) {
+			new->hShortestP[i] = MapGetShortestPathTo(GvGetPlayerLocation(new->gv, i),GvGetRound(new->gv),i);
+		} 
+	}
 	
 
 
