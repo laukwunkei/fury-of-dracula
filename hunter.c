@@ -39,7 +39,7 @@ typedef enum moveMode {
 
 ////////////////////////////////////
 // Helper functions
-static int randomMove(HunterView hv);
+static int randomMove(HunterView hv, bool haveRail);
 static int returnNext(int dest, int Player, HunterView hv);
 static bool farEnough(HunterView hv, int dest);
 static MoveMode moveMode(HunterView hv, int dest);
@@ -112,7 +112,7 @@ void decideHunterMove(HunterView hv)
 					
 					// Eastimate which mode to use
 					if (moveMode(hv, realLoc) == RANDOM)
-						registerBestPlay((char *)placeIdToAbbrev(randomMove(hv)), "Playing around here");	
+						registerBestPlay((char *)placeIdToAbbrev(randomMove(hv, false)), "Playing around here");	
 					else if (moveMode(hv, realLoc) == ON_PURPOSE)
 						registerBestPlay((char *)placeIdToAbbrev(nextMove), "Come for dracula");
 					free(trail);
@@ -127,7 +127,7 @@ void decideHunterMove(HunterView hv)
 				int nextMove = returnNext(trail[i], currPlayer, hv);
 				// estimate which mode to use
 				if (moveMode(hv, trail[i]) == RANDOM)
-					registerBestPlay((char *)placeIdToAbbrev(randomMove(hv)), "Playing around here");	
+					registerBestPlay((char *)placeIdToAbbrev(randomMove(hv, false)), "Playing around here");	
 				else if (moveMode(hv, trail[i]) == ON_PURPOSE)
 					registerBestPlay((char *)placeIdToAbbrev(nextMove), "Come for dracula");
 				
@@ -140,7 +140,7 @@ void decideHunterMove(HunterView hv)
 	// We can't find any useful information in the trail
 	// If we are in the first 6 rounds, do random moves
 	if (HvGetRound(hv) < 6) {
-		registerBestPlay((char *)placeIdToAbbrev(randomMove(hv)), "Playing around here");
+		registerBestPlay((char *)placeIdToAbbrev(randomMove(hv, true)), "Playing around here");
 		return;
 	}
 	
@@ -154,7 +154,7 @@ void decideHunterMove(HunterView hv)
 		
 		MoveMode mode = moveMode(hv, draculaLastLoc);
 		if (mode == RANDOM)
-			registerBestPlay((char *)placeIdToAbbrev(randomMove(hv)), "Playing around here");	
+			registerBestPlay((char *)placeIdToAbbrev(randomMove(hv, false)), "Playing around here");	
 		else if(mode == ON_PURPOSE) {
 			int nextMove = returnNext(draculaLastLoc, HvGetPlayer(hv), hv);
 			registerBestPlay((char *)placeIdToAbbrev(nextMove), "Go find dracula's place");
@@ -170,17 +170,24 @@ void decideHunterMove(HunterView hv)
 
 
 // randomly choose a place from available location
+// We will use the second variables to eastimate whether include rail
 // In the meanwhile, we don't go to the same place we have been to
 // in the last turn
-static int randomMove(HunterView hv) {
+static int randomMove(HunterView hv, bool haveRail) {
 	// Generate a bunch of datas for random move
 	srand(time(NULL));
 	int numofLocs, numofReturnRound;// variables put into functions
 	Player currPlayer = HvGetPlayer(hv);
-	PlaceId *place_ids = HvWhereCanTheyGo(hv, currPlayer, &numofLocs);
 	PlaceId *moveHis = HvReturnMoveHis(hv, &numofReturnRound, currPlayer);
+	PlaceId *place_ids;
+	
+	// Eastimate whether consider the rail
+	if (haveRail == false)
+		place_ids = HvWhereCanTheyGoByType(hv, currPlayer, true, false, true, &numofLocs);
+	else 
+		place_ids = HvWhereCanTheyGoByType(hv, currPlayer, true, true, true, &numofLocs);
 	int randomIndex = rand() % (numofLocs);
-
+	
 	// If current player only have one location in his move history
 	if (numofReturnRound == 1)
 		return place_ids[randomIndex];
