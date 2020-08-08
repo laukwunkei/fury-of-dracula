@@ -313,9 +313,10 @@ static bool isTrailLocationValid (HunterView hv) {
 					return true;	
 				}
 			}
-			break;
+			free(moveHis);
+			return false;
 		}
 	}
 	free(moveHis);
-	return false;
+	return true;
 } 
