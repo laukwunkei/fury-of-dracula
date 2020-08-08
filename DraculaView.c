@@ -243,6 +243,9 @@ static bool Has_DB(PlaceId *trail){
 static PlaceId *location_movement(DraculaView dv, int *numReturnedLocs, bool road, bool rail, bool boat){
 	*numReturnedLocs = 0;
 	PlaceId *all_place = malloc(sizeof(int) * NUM_REAL_PLACES);
+	for (int i = 0; i < numReturnedLocs; i++){
+		all_place[i] = 0;
+	}
 	all_place = GvGetReachableByType(dv->game, PLAYER_DRACULA, GvGetRound(dv->game), dv->drac_trail[0], true, false, true, numReturnedLocs);
 	//Create a new array to mark whether it's a valid place
 	PlaceId *correct_place = malloc(sizeof(int) * NUM_REAL_PLACES);
