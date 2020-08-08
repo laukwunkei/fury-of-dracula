@@ -45,8 +45,7 @@ static bool farEnough(HunterView hv, int dest);
 static MoveMode moveMode(HunterView hv, int dest);
 static bool isDoubleBack(PlaceId loc);
 static bool visitedThereBefore(HunterView hv, PlaceId dest);
-static bool isDraculaInSea(HunterView hv);
-
+static bool isTrailLocationValid (HunterView hv);
 
 void decideHunterMove(HunterView hv)
 {
@@ -254,7 +253,7 @@ static MoveMode moveMode(HunterView hv, int dest) {
 	// Get current location of dracula
 	PlaceId draculaCurrLoc = findFinalRealPlace(hv, 0);
 
-	if (isDraculaInSea(hv)) return RANDOM;
+	if (!isTrailLocationValid(hv)) return RANDOM;
 	if (draculaCurrLoc == dest) return ON_PURPOSE;
 	if (visitedThereBefore(hv, dest) && !farEnough(hv, dest))
 		return RANDOM;
@@ -287,18 +286,36 @@ static bool visitedThereBefore(HunterView hv, PlaceId dest) {
 	return false;
 }
 
-// If dracuala in the sea, we return true
-static bool isDraculaInSea(HunterView hv) {
+// // If dracuala in the sea, we return true
+// static bool isDraculaInSea(HunterView hv) {
+// 	int returnRound;
+// 	PlaceId *moveHis = HvReturnMoveHis(hv, &returnRound, PLAYER_DRACULA);
+// 	for (int i = 0; i < returnRound; i++) {
+// 		if (moveHis[i] == SEA_UNKNOWN) {
+// 			free(moveHis);
+// 			return true;
+// 		}
+// 	}
+// 	free(moveHis);
+// 	return false;
+// }
+
+// If after dracula goes into sea and there is no location revealed after that, we return false
+static bool isTrailLocationValid (HunterView hv) {
 	int returnRound;
 	PlaceId *moveHis = HvReturnMoveHis(hv, &returnRound, PLAYER_DRACULA);
 	for (int i = 0; i < returnRound; i++) {
 		if (moveHis[i] == SEA_UNKNOWN) {
-			free(moveHis);
-			return true;
+			for (int j = 0; j < i; j++) {
+				PlaceId loc = findFinalRealPlace(hv, i);
+				if (placeIsReal(loc)) {
+					free(moveHis);
+					return true;	
+				}
+			}
+			break;
 		}
 	}
 	free(moveHis);
 	return false;
-}
-
-//Eastimate whether 
+} 
