@@ -60,7 +60,7 @@ typedef DraculaView View;
 # define decideMove decideDraculaMove
 # define ViewFree DvFree
 
-# define xPastPlays "GLO.... SLO.... HLO.... MLO.... DCD.V.. GSW.... SMN.... HMN.... MSW.... DGAT... GSW.... SSW.... HMN.... MSW.... DKLT... GSW.... SSW.... HMN.... MSW.... DBET... GSW.... SSW.... HSW.... MSW.... DBCT... GSW.... SSW.... HSW.... MSW.... DCNT... GSW.... SSW.... HSW.... MSW.... DBS..V. GSW.... SSW.... HSW.... MSW.... DVRT.M. GSW.... SSW.... HSW.... MSW.... DSOT.M. GSW.... SSW.... HSW.... MSW.... DBET.M. GSW.... SSW.... HSW.... MSW.... DKLT.M. GSW.... SSW.... HSW.... MSW.... DCDT.M. GSW.... SSW.... HSW.... MSW.... DGAT... GSW.... SSW.... HSW.... MSW.... DBC.VM. GSW.... SSW.... HSW.... MSW.... DCNT.M. GSW.... SSW.... HSW.... MSW.... DBS..M. GSW.... SSW.... HSW.... MSW.... DVRT.M. GSW.... SSW.... HSW.... MSW.... DSOT.M. GSW.... SSW.... HSW.... MSW.... DBET.M. GSW.... SSW.... HSW.... MSW.... DKLT.V. GSW.... SSW.... HSW.... MSW.... DCDT.M. GSW.... SSW.... HSW.... MSW.... DGAT... GSW.... SSW.... HSW.... MSW.... DBCT.M. GSW.... SSW.... HSW.... MSW.... DCNT.M. GSW.... SSW.... HSW.... MSW.... DBS..M. GSW.... SSW.... HSW.... MSW.... DVRT.M. GSW.... SSW.... HSW.... MSW.... DSO.VM. GSW.... SSW.... HSW.... MSW.... DBET.M. GSW.... SSW.... HSW.... MSW.... DKLT.M. GSW.... SSW.... HSW.... MSW.... DCDT.M. GSW.... SSW.... HSW.... MSW.... DGAT... GSW.... SSW.... HSW.... MSW...."
+# define xPastPlays "GMA.... SPA.... HBR.... MSO.... DLO.V.. GCA.... SBU.... HMU.... MBC.... DSWT... GAO.... SBO.... HNU.... MBC...."
 # define xMsgs { "", "", "", "" }
 
 #else
