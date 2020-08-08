@@ -56,6 +56,26 @@ typedef enum euro_regions {
 void decideDraculaMove(DraculaView dv)
 {
 	
+	#if 1
+		int round = DvGetRound(dv);
+	if (round%7 == 0){
+		registerBestPlay("CD", "Catch me");
+	} else if(round%7 == 1){
+		registerBestPlay("KL", "Catch me");
+	} else if (round%7 == 2){
+		registerBestPlay("GA", "Catch me");
+	} else if (round%7 == 3){
+		registerBestPlay("D3", "Catch me");
+	} else if (round%7 == 4){
+		registerBestPlay("HI", "Catch me");
+	} else if (round%7 == 5){
+		registerBestPlay("TP", "Catch me");
+	} else if (round%7 == 6){
+		registerBestPlay("TP", "Catch me");
+	}
+
+}
+	#else
 	//storing all hunters current location first
 	PlaceId LG_position = DvGetPlayerLocation(dv, PLAYER_LORD_GODALMING);
 	PlaceId DR_position = DvGetPlayerLocation(dv, PLAYER_DR_SEWARD);
@@ -406,3 +426,4 @@ int ShortestPath_distance(PlaceId src, PlaceId dest, Map m){
     }
     return count;
 }
+#endif
