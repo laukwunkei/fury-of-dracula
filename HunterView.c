@@ -31,7 +31,7 @@ static bool isDoubleBack(PlaceId loc);
 
 struct hunterView {
 	GameView gv;
-	int *hShortestP[NUM_PLAYERS - 1]; // Hunters' shortest path
+	int **hShortestP; // Hunters' shortest path
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -47,6 +47,7 @@ HunterView HvNew(char *pastPlays, Message messages[])
 		exit(EXIT_FAILURE);
 	}
 	new->gv = GvNew(pastPlays,messages);
+	new->hShortestP = (int**)malloc(sizeof(int*) * (NUM_PLAYERS - 1));
 
 	// If this is the first round of the game
 	if (GvGetRound(new->gv) == 0) {
