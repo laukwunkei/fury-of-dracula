@@ -96,7 +96,7 @@ void decideDraculaMove(DraculaView dv)
 		printf("drac is at %d region\n", curr_region);
 		printf("safe region is %d\n", safe_region);
 		//Moving towards CD if blood status is low
-		if(blood_status < 15){
+		if(blood_status < 20){
 			strcpy(next_move, placeIdToAbbrev(MoveToRegion(dv, Eastern_Europe)));
 			registerBestPlay(next_move, "Catch me!");
 		}
