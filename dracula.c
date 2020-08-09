@@ -224,7 +224,7 @@ bool is_safe(DraculaView dv, int region){
 PlaceId MoveToRegion(DraculaView dv, int safe_region){
 	//set target in each region to move towards
 	PlaceId target_place = UNKNOWN_PLACE;
-	if (safe_region == NORTH_ENGLAND) target_place = LONDON;
+	if (safe_region == NORTH_ENGLAND) target_place = LE_HAVRE;
 	if (safe_region == SPAIN_PORTUGAL) target_place = BARCELONA;
 	if (safe_region == SOUTHERN_EUROPE) target_place = FLORENCE;
 	if (safe_region == Central_Europe) target_place = ZURICH;
