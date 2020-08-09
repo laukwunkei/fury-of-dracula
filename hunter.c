@@ -41,11 +41,9 @@ typedef enum moveMode {
 // Helper functions
 static int randomMove(HunterView hv, bool haveRail);
 static int returnNext(int dest, int Player, HunterView hv);
-//static bool farEnough(HunterView hv, int dest);
 static MoveMode moveMode(HunterView hv, int dest);
 static bool isDoubleBack(PlaceId loc);
 static bool visitedThereBefore(HunterView hv, PlaceId dest, int numofRounds);
-// static bool isTrailLocationValid (HunterView hv);
 static bool isDraculaInSea(HunterView hv);
 static PlaceId randomChoosePlace(HunterView hv, PlaceId *locs, int numofLocs);
 
@@ -249,19 +247,6 @@ static int returnNext(int dest, int Player, HunterView hv) {
 	free(moveHis);
 	return next;
 }
- 
-// Whether current hunter is far enough from trail?
-// We define the concept "far enough" to be as far as at least one move from 
-// any moves revealed in draculs's trail, in another words, hunter should not be
-// in the trail of dracula
-// static bool farEnough(HunterView hv, int dest) {
-// 	int pathLength; 
-// 	HvGetShortestPathTo(hv, HvGetPlayer(hv), dest, &pathLength);
-// 	if (pathLength >= 3)
-// 		return true;
-// 	else
-// 		return false;	
-// }
 
 
 // Return move mode based on whether hunter is far from 
@@ -319,26 +304,6 @@ static bool isDraculaInSea(HunterView hv) {
 	return false;
 }
 
-// // If after dracula goes into sea and there is no location revealed after that, we return false
-// static bool isTrailLocationValid (HunterView hv) {
-// 	int returnRound;
-// 	PlaceId *moveHis = HvReturnMoveHis(hv, &returnRound, PLAYER_DRACULA);
-// 	for (int i = 0; i < returnRound; i++) {
-// 		if (moveHis[i] == SEA_UNKNOWN) {
-// 			for (int j = 0; j < i; j++) {
-// 				PlaceId loc = findFinalRealPlace(hv, i);
-// 				if (placeIsReal(loc)) {
-// 					free(moveHis);
-// 					return true;	
-// 				}
-// 			}
-// 			free(moveHis);
-// 			return false;
-// 		}
-// 	}
-// 	free(moveHis);
-// 	return true;
-// }
 
 // Choose a location near the target location and return a random one which not in
 // the dracula's trail
