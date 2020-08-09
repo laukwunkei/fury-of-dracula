@@ -47,6 +47,7 @@ static bool isDoubleBack(PlaceId loc);
 static bool visitedThereBefore(HunterView hv, PlaceId dest, int numofRounds);
 // static bool isTrailLocationValid (HunterView hv);
 static bool isDraculaInSea(HunterView hv);
+static PlaceId randomChoosePlace(HunterView hv, PlaceId *locs, int numofLocs);
 
 void decideHunterMove(HunterView hv)
 {
@@ -220,12 +221,32 @@ static int randomMove(HunterView hv, bool haveRail) {
 
 // Return next location in the path from current location to destination
 static int returnNext(int dest, int Player, HunterView hv) {
+	assert(placeIsReal(dest));
 	PlaceId *path;
 	PlaceId next;
 	int pathLength;
+	int numofRounds;
+	PlaceId *moveHis = HvReturnMoveHis(hv, &numofRounds, PLAYER_DRACULA);
+
+	// If there are any hunter in the destination where is not the current dracula's location
+	if (HvAnyOtherHunters(hv, dest) && dest != findFinalRealPlace(hv, 0)) {
+		// Find out what hunter on that place
+		int pl; // Player
+		for (int i = 0; i < 4; i++) {
+			if (HvGetPlayerLocation(hv, i) == dest) {
+				pl = i;
+				break;
+			}
+		}
+		int numofLocs;
+		PlaceId *nearbyLoc = HvWhereCanTheyGoByType(hv, pl, true, false, true, &numofLocs);
+		dest = randomChoosePlace(hv, nearbyLoc, numofLocs);
+		free(nearbyLoc);
+	}
 	path = HvGetShortestPathTo(hv, Player, dest, &pathLength);
 	next = path[0];
 	free(path);
+	free(moveHis);
 	return next;
 }
  
@@ -318,3 +339,35 @@ static bool isDraculaInSea(HunterView hv) {
 // 	free(moveHis);
 // 	return true;
 // }
+
+// Choose a location near the target location and return a random one which not in
+// the dracula's trail
+static PlaceId randomChoosePlace(HunterView hv, PlaceId *locs, int numofLocs) {
+	int trailSize = -1;
+	PlaceId *trail = HvReturnTrail(hv, &trailSize);
+	int numofL = numofLocs;
+	// eastimate whether the place near the dest has been in the trail
+	for (int i = 0; i < numofLocs; i++) {
+		for(int j = 0; j < trailSize; j++) {
+			if (locs[i] == trail[j]) {
+				numofL--;	
+				locs[i] = NOWHERE;
+			}
+		}
+	}
+	PlaceId tmpLocs[numofL];
+	int counterTmp = 0;
+	for (int i = 0; i < numofLocs; i++) {
+		if (locs[i] == NOWHERE) {
+			continue;
+		} else {
+			tmpLocs[counterTmp] = locs[i];
+			counterTmp++;
+		}
+	}
+
+	srand(HvGetRound(hv));
+	int randIndex = (rand() + HvGetPlayer(hv)) % counterTmp;
+	free(trail);
+	return tmpLocs[randIndex];
+}
