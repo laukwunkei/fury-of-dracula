@@ -1,5 +1,6 @@
 # fury-of-dracula
 COMP2521 assignment2
+- Strategy-based AI for board game - fury of dracula
 
 Group members
 * KWUN KEI LAU - z5265204 - W13A
